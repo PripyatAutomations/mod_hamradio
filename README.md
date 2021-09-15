@@ -18,5 +18,8 @@ We use libgpiod, however, so it shouldn't take much to make work elsewhere.
 Audio is handled via portaudio channels, allowing you to use as many
 channels as the machine can support.
 
-Eventually it would be nice to split the GPIO based control into it's own
-file, so that radios with USB/serial CAT based PTT could be supported.
+No warranties of any kind! If it breaks, you get to keep the pieces!
+
+Feel free to contribute bugfixes/issues via github
+
+https://github.com/PripyatAutomations/mod_hamradio
