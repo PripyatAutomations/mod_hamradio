@@ -314,7 +314,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
       // initialize their libgpiod interfaces
       radio_gpio_init(radio);
 
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] Bringing up radio%d (GPIO) with settings\n", radio);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] Bringing up radio%d (GPIO) with settings:\n", radio);
       radio_dump_state_var(radio);
 
       if (r->enabled)
@@ -384,8 +384,6 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    // We're running, let our child thread do it's thing!
    globals.alive = 1;
 
-   radio_dump_state_var(0);
-   radio_dump_state_var(1);
    /* indicate that the module should continue to be loaded */
    return SWITCH_STATUS_SUCCESS;
 }

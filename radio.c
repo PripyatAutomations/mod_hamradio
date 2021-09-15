@@ -81,7 +81,6 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    }
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] radio_set_state(%s) called for radio%d - BEGIN: \n", radio_status_msgs[val], radio);
-   radio_dump_state_var(radio);
    // try to prevent invalid radios as this is used to index an array
    if (radio < 0 || radio > MAX_RADIOS) {
       err_invalid_radio(radio);
@@ -92,7 +91,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    r = &globals.Radios[radio];
 
    if (r == NULL) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio] radio_set_state(%s) called for radio%d - Cannot find radio data structure\n", radio_status_msgs[val], radio);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio] set_state(%s) called for radio%d - Cannot find radio data structure\n", radio_status_msgs[val], radio);
       return RADIO_ERROR;
    }
 
@@ -127,7 +126,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         err_invalid_radio(radio);
         break;
      case RADIO_DISABLED:
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Ignoring state change for radio%d because it is disabled.\n", radio);
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] set_state() Ignoring state change for radio%d because it is disabled.\n", radio);
         break;
      case RADIO_OFF:
         // Clear PTT
@@ -147,7 +146,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         break;
    }
 
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "radio%d STATUS change (%s) => (%s)\n", radio, radio_status_msgs[old_status], radio_get_status_str(radio));
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "[radio] radio%d STATUS change (%s) => (%s)\n", radio, radio_status_msgs[old_status], radio_get_status_str(radio));
 
    return r->status;
 }
