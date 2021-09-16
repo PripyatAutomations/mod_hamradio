@@ -4,6 +4,9 @@
 #if	!defined(MOD_HAMRADIO_H)
 #define	MOD_HAMRADIO_H
 #include <gpiod.h>
+#include <time.h>
+#include <stdlib.h>
+#include "dconf.h"
 // Support for GPIO controlled (relays/optocouplers and COS/TOS inputs) radios
 #include "radio_gpio.h"
 // Support for rigctl controlled radios (NYI)
@@ -107,6 +110,9 @@ extern void radio_conference_ptt_off(switch_core_session_t *sssion);
 extern void radio_print_status(switch_stream_handle_t *stream, const int radio);
 extern int radio_dump_state_var(const int radio);
 
+extern time_t timestr_to_time(const char *str, const time_t def);
+extern char *time_to_timestr(time_t itime);
+
 ///////////////////////////////////////
 // And some inlines that belong here //
 ///////////////////////////////////////
@@ -129,4 +135,5 @@ static inline int str_to_intbool(const char *str) {
       return -1;
    }
 }
+
 #endif	// (MOD_HAMRADIO_H)

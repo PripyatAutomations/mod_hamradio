@@ -30,7 +30,7 @@ int radio_gpiochip_init(const char *chipname) {
 int radio_gpio_init(const int radio) {
    Radio_t *r;
 
-   if (radio < 0 || radio > MAX_RADIOS) {
+   if (radio < 0 || radio >= MAX_RADIOS) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init: (%d) is not a valid radio id\n", radio);
       err_invalid_radio(radio);
    }

@@ -18,6 +18,7 @@
  */
 #include <switch.h>
 #include "mod_hamradio.h"
+#include "dconf.h"
 
 Globals_t globals;
 
@@ -107,7 +108,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       }
 
       int radio = atoi(argv[1]);
-      if (radio < 0 || radio > MAX_RADIOS) {
+      if (radio < 0 || radio >= MAX_RADIOS) {
          err_invalid_radio(radio);
          status = SWITCH_STATUS_FALSE;
          goto done;
@@ -120,7 +121,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       }
 
       int radio = atoi(argv[1]);
-      if (radio < 0 || radio > MAX_RADIOS) {
+      if (radio < 0 || radio >= MAX_RADIOS) {
          err_invalid_radio(radio);
          status = SWITCH_STATUS_FALSE;
          goto done;
@@ -149,7 +150,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 2) {
          const int radio = atoi(argv[1]);
 
-         if (radio < 0 || radio > MAX_RADIOS) {
+         if (radio < 0 || radio >= MAX_RADIOS) {
             err_invalid_radio(radio);
             status = SWITCH_STATUS_FALSE;
             goto done;
@@ -164,7 +165,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 3) {
          const int radio = atoi(argv[1]);
 
-         if (radio < 0 || radio > MAX_RADIOS) {
+         if (radio < 0 || radio >= MAX_RADIOS) {
             err_invalid_radio(radio);
             status = SWITCH_STATUS_FALSE;
             goto done;
@@ -200,13 +201,13 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 2) {
          const int radio = atoi(argv[1]);
 
-         if (radio < 0 || radio > MAX_RADIOS) {
+         if (radio < 0 || radio >= MAX_RADIOS) {
             err_invalid_radio(radio);
             status = SWITCH_STATUS_FALSE;
             goto done;
          }
 
-	 stream->write_function(stream, "PTT status: radio%d - ", radio);
+	 stream->write_function(stream, "radio%d: ", radio);
 
 	 if (radio_get_state(radio) == RADIO_TX)
 	    stream->write_function(stream, "transmitting\n");
@@ -215,7 +216,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 3) {
          int radio = atoi(argv[1]);
 
-	 if (radio < 0 || radio > MAX_RADIOS) {
+	 if (radio < 0 || radio >= MAX_RADIOS) {
 	    err_invalid_radio(radio);
 	    status = SWITCH_STATUS_FALSE;
 	    goto done;
@@ -242,13 +243,12 @@ SWITCH_STANDARD_API(hamradio_function) {
       }
       goto done;
    } else if (!strcasecmp(argv[0], "reload")) {
-      //
+      // load_configuration(1);
    } else if (!strcasecmp(argv[0], "status")) {
       int active_radios = 0;
-
-      stream->write_function(stream, "*** RADIO STATUS: radio%s ***\n", ((argc > 1) ? argv[1] : "ALL"));
       
       if (argc == 1) {
+         stream->write_function(stream, "*** Status for ALL radios ***\n");
          for (int i = 0; i < globals.radios; i++) {
             enum RadioStatus rs = radio_get_state(i);
 
@@ -261,7 +261,8 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 2) {
          int radio = atoi(argv[1]);
 
-	 if (radio < 0 || radio > MAX_RADIOS) {
+         stream->write_function(stream, "radio%s:\n", argv[1]);
+	 if (radio < 0 || radio >= MAX_RADIOS) {
 	    err_invalid_radio(radio);
 	    status = SWITCH_STATUS_FALSE;
 	    goto done;
@@ -284,17 +285,21 @@ done:
 // Configuration Load //
 ////////////////////////
 switch_status_t load_configuration(switch_bool_t reload) {
-//   switch_xml_t xml = NULL, x_lists = NULL, cfg = NULL, callprogress = NULL, xdescriptor = NULL;
    switch_status_t status = SWITCH_STATUS_FALSE;
+   dict *radio_cfg;
 
+// XXX: get this shite sorted out so we can reload safely
 //   if (globals.mutex == NULL)
 //      switch_mutex_init(globals.mutex, SWITCH_THREAD_MUTEX_UNNESTED, /* XXX Figure out pool */
 //   switch_mutex_lock(globals.mutex);
-   /* XXX: This all belongs in the config file! */
-   /* XXX: Should we change this to be gpiochip/pin in the config??? It would require a lot more code...
-    * XXX: This works just fine on pi... Feel free to add if you need
-    */
+
    memset(&globals, 0, sizeof(globals));
+
+   if (!(radio_cfg = dconf_load("/etc/freeswitch/hamradio.conf"))) {
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] loading configuration from hamradio.conf failed\n");
+      return SWITCH_STATUS_FALSE;
+   }
+
    globals.radios = 2;
    globals.Radios[0].pin_power = 17;
    globals.Radios[0].pin_ptt = 5;
@@ -322,14 +327,15 @@ switch_status_t load_configuration(switch_bool_t reload) {
       if (r->enabled)
          radio_enable(radio);
    }
+
 //   switch_mutex_unlock(globals.mutex);
    return status;
 }
 
 static void event_handler(switch_event_t *event) {
    if (event->event_id == SWITCH_EVENT_RELOADXML) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "mod_hamradio reloading\n");
-      load_configuration(1);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "mod_hamradio ignoring reload for now...\n");
+//      load_configuration(1);
    }
 }
 

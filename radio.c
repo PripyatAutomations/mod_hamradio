@@ -15,7 +15,7 @@ static const char *radio_status_msgs[4] = { "OFF", "Idle", "Transmitting", NULL 
 static const char *radio_get_status_str(const int radio) {
     Radio_t *r = NULL;
 
-    if (radio < 0 || radio > MAX_RADIOS) {
+    if (radio < 0 || radio >= MAX_RADIOS) {
        err_invalid_radio(radio);
        return NULL;
     }
@@ -26,7 +26,7 @@ static const char *radio_get_status_str(const int radio) {
 RadioStatus_t radio_enable(const int radio) {
    Radio_t *r = NULL;
 
-   if (radio < 0 || radio > MAX_RADIOS) {
+   if (radio < 0 || radio >= MAX_RADIOS) {
       err_invalid_radio(radio);
       return RADIO_ERROR;
    }
@@ -49,7 +49,7 @@ RadioStatus_t radio_enable(const int radio) {
 int radio_disable(const int radio) {
    Radio_t *r = NULL;
 
-   if (radio < 0 || radio > MAX_RADIOS) {
+   if (radio < 0 || radio >= MAX_RADIOS) {
       err_invalid_radio(radio);
       return RADIO_ERROR;
    }
@@ -82,7 +82,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] radio_set_state(%s) called for radio%d\n", radio_status_msgs[val], radio);
    // try to prevent invalid radios as this is used to index an array
-   if (radio < 0 || radio > MAX_RADIOS) {
+   if (radio < 0 || radio >= MAX_RADIOS) {
       err_invalid_radio(radio);
       return RADIO_ERROR;
    }
@@ -145,7 +145,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
 
 // Get the current combined (power and ptt) state of the radio
 RadioStatus_t radio_get_state(const int radio) {
-   if (radio < 0 || radio > MAX_RADIOS) {
+   if (radio < 0 || radio >= MAX_RADIOS) {
       err_invalid_radio(radio);
       return RADIO_ERROR;
    }
@@ -262,7 +262,7 @@ void radio_print_status(switch_stream_handle_t *stream, const int radio) {
    switch(radio_get_state(radio)) {
       // Error conditions are handled here (except DISABLED, since it's not really an error)
       case RADIO_ERROR:
-         if (radio > MAX_RADIOS) {
+         if (radio >= MAX_RADIOS) {
             stream->write_function(stream, "invalid radio %d specified\n", radio);
             err_invalid_radio(radio);
          } else
@@ -284,7 +284,7 @@ int radio_dump_state_var(const int radio) {
    Radio_t *r;
 
    // try to prevent invalid radios as this is used to index an array
-   if (radio < 0 || radio > MAX_RADIOS) {
+   if (radio < 0 || radio >= MAX_RADIOS) {
       err_invalid_radio(radio);
       return SWITCH_STATUS_FALSE;
    }
