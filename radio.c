@@ -80,7 +80,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
       return RADIO_ERROR;
    }
 
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] radio_set_state(%s) called for radio%d - BEGIN: \n", radio_status_msgs[val], radio);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] radio_set_state(%s) called for radio%d\n", radio_status_msgs[val], radio);
    // try to prevent invalid radios as this is used to index an array
    if (radio < 0 || radio > MAX_RADIOS) {
       err_invalid_radio(radio);
@@ -98,15 +98,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    // Save the old status, for our informational log message below
    old_status = r->status;
 
-   // Radio must be ENABLED before doing any commands to it.
-   // RADIO_DISABLED and RADIO_ERROR are not valid states for the radio, they are error returns....
- /*
-   if (!r->enabled && (val > RADIO_OFF)) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Refusing to change state on radio%d because it is disabled!\n", radio);
-      return RADIO_DISABLED;
-   }
-*/
-   // Set the channel state
+   // Set the new channel state
    r->status = val;
 
    // Are either gpio pin disconnected from libgpiod?
@@ -276,8 +268,9 @@ void radio_print_status(switch_stream_handle_t *stream, const int radio) {
          } else
             stream->write_function(stream, "ERROR unknown\n");
          break;
-      // Pass through the disabled state even though the status flag should NEVER be < 0
       case RADIO_DISABLED:
+         stream->write_function(stream, "DISABLED\n");
+         break;
       // Any normal state of the radio is handled here
       case RADIO_OFF:
       case RADIO_IDLE:
@@ -304,9 +297,9 @@ int radio_dump_state_var(const int radio) {
       return SWITCH_STATUS_FALSE;
    }
 
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "  => enabled: %d rx_mode: %d\n", r->enabled, r->RX_mode);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "  => enabled: %d rx_mode: %d status: %s\n", r->enabled, r->RX_mode, radio_status_msgs[r->status]);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "  => pin_power: %d pin_ptt: %d pin_squelch: %d\n", r->pin_power, r->pin_ptt, r->pin_squelch);
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "  => gpiod power: %p ptt: %p squelch: %p\n", r->gpio_power, r->gpio_ptt, r->gpio_squelch);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "  => gpiod addr power: %p ptt: %p squelch: %p\n", r->gpio_power, r->gpio_ptt, r->gpio_squelch);
 
    return SWITCH_STATUS_SUCCESS;
 }

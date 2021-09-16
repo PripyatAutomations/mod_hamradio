@@ -287,6 +287,8 @@ switch_status_t load_configuration(switch_bool_t reload) {
 //   switch_xml_t xml = NULL, x_lists = NULL, cfg = NULL, callprogress = NULL, xdescriptor = NULL;
    switch_status_t status = SWITCH_STATUS_FALSE;
 
+//   if (globals.mutex == NULL)
+//      switch_mutex_init(globals.mutex, SWITCH_THREAD_MUTEX_UNNESTED, /* XXX Figure out pool */
 //   switch_mutex_lock(globals.mutex);
    /* XXX: This all belongs in the config file! */
    /* XXX: Should we change this to be gpiochip/pin in the config??? It would require a lot more code...
@@ -320,7 +322,6 @@ switch_status_t load_configuration(switch_bool_t reload) {
       if (r->enabled)
          radio_enable(radio);
    }
-
 //   switch_mutex_unlock(globals.mutex);
    return status;
 }
