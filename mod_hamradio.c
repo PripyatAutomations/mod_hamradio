@@ -255,20 +255,18 @@ SWITCH_STANDARD_API(hamradio_function) {
 	    if (rs > RADIO_OFF)
 	       active_radios++;
 
-	    radio_print_status(stream, i);
+            radio_dump_state_var(i);
          }
          stream->write_function(stream, "*** (%d/%d units active) ***\n", active_radios, globals.radios);
       } else if (argc == 2) {
          int radio = atoi(argv[1]);
 
-         stream->write_function(stream, "radio%s:", argv[1]);
 	 if (radio < 0 || radio >= MAX_RADIOS) {
 	    err_invalid_radio(radio);
 	    status = SWITCH_STATUS_FALSE;
 	    goto done;
 	 }
 
-         radio_print_status(stream, radio);
          radio_dump_state_var(radio);
       } else {
          stream->write_function(stream, "USAGE:\nhamradio status <radio>\n");

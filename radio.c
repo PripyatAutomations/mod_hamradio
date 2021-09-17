@@ -323,12 +323,12 @@ int radio_dump_state_var(const int radio) {
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "[radio] radio%d configuration:\n", radio);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "     status: %s\n", radio_get_status_str(radio));
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    enabled: %d     squelch mode: %d %s\n", r->enabled, r->RX_mode, (r->squelch_invert ? "(inverted)" : ""));
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %d     inband ctcss: %d\n", r->timeout_talk, r->ctcss_inband);
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   PTT GPIO: %d       Power GPIO: %d    Squelch GPIO: %d\n", r->pin_ptt, r->pin_power, r->pin_squelch);
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s\tpa_outdev: %s\n", r->pa_indev, r->pa_outdev);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    enabled: %d\tsquelch mode: %d %s\n", r->enabled, r->RX_mode, (r->squelch_invert ? "(inverted)" : ""));
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %d\tinband ctcss: %d\n", r->timeout_talk, r->ctcss_inband);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, " GPIO:  PTT: %d\tPower: %d\tSquelch: %d\n", r->pin_ptt, r->pin_power, r->pin_squelch);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %lu     total_tx: %lu\n", r->total_rx, r->total_tx);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    last_rx: %lu      last_tx: %lu     talk_start: %lu\n", r->last_rx, r->last_tx, r->talk_start);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s\tpa_outdev: %s\n", r->pa_indev, r->pa_outdev);
    
    return SWITCH_STATUS_SUCCESS;
 }
