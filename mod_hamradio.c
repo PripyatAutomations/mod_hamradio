@@ -389,7 +389,7 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    }
 
    // Define our CLI interface
-   SWITCH_ADD_API(api_interface, "hamradio", "RePiTeR GPIO controls", hamradio_function, "shows status");	
+   SWITCH_ADD_API(api_interface, "hamradio", "hamradio channel controls", hamradio_function, "shows status");	
    switch_console_set_complete("add hamradio help");
    switch_console_set_complete("add hamradio status");
    switch_console_set_complete("add hamradio disable");
