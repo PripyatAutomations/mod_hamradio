@@ -322,7 +322,7 @@ int radio_dump_state_var(const int radio) {
       return SWITCH_STATUS_FALSE;
    }
 
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "[radio] radio%d configuration:\n", radio);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "radio%d configuration:\n", radio);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "     status: %s\n", radio_get_status_str(radio));
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    enabled: %d\tsquelch mode: %d %s\n", r->enabled, r->RX_mode, (r->squelch_invert ? "(inverted)" : ""));
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %d\tinband ctcss: %d\n", r->timeout_talk, r->ctcss_inband);
