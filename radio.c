@@ -128,14 +128,29 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         break;
      case RADIO_IDLE:
      case RADIO_RX:		// This is essentially the same thing
+        // XXX: Turn off the timeout timer
+
+        // XXX: Check when last IDed and pause then send a tailing identification
+
         // Clear PTT
         gpiod_line_set_value(r->gpio_ptt, 0);
+
         // Ensure POWER is ON, if it wasn't previously
         gpiod_line_set_value(r->gpio_power, 1);
+
+        // save the total time transmitted
+        r->total_tx += (time(NULL) - r->talk_start);
+
+        // Clear talk time for TOT
+        r->talk_start = 0;
         break;
      case RADIO_TX:
+        // Start timers here for TOT, but don't restart it if we didn't stop TXing...
+        if (r->talk_start > 0) {
+           r->talk_start = time(NULL);
+        }
         gpiod_line_set_value(r->gpio_ptt, 1);
-        // XXX: Start timers here for TOT & periodic ident
+        // XXX: Set a timer here to timeout the TX
         break;
    }
 
@@ -299,5 +314,15 @@ int radio_dump_state_var(const int radio) {
       return SWITCH_STATUS_FALSE;
    }
 
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "[radio] radio%d configuration:\n", radio);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    enabled: %d     squelch mode: %d %s\n", r->enabled, r->RX_mode, (r->squelch_invert ? "(inverted)" : ""));
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %d     inband ctcss: %d\n", r->timeout_talk, r->ctcss_inband);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   PTT GPIO: %d       Power GPIO: %d    Squelch GPIO: %d\n", r->pin_ptt, r->pin_power, r->pin_squelch);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s pa_outdev: %s\n", r->pa_indev, r->pa_outdev);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "[radio] radio%d status:\n", radio);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "     status: %s\n", radio_get_status_str(radio));
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %lu     total_tx: %lu\n", r->total_rx, r->total_tx);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    last_rx: %lu      last_tx: %lu     talk_start: %lu\n", r->last_rx, r->last_tx, r->talk_start);
+   
    return SWITCH_STATUS_SUCCESS;
 }

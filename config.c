@@ -14,7 +14,7 @@
 #include <string.h>
 #include "mod_hamradio.h"
 #include "dict.h"
-#include "dconf.h"
+#include "config.h"
 
 dict *dconf_load(const char *file) {
    int line = 0, errors = 0, warnings = 0;
@@ -194,6 +194,13 @@ dict *dconf_load(const char *file) {
               r->squelch_invert = true;
            } else {
               r->squelch_invert = false;
+           }
+         } else if (!strncasecmp(key, "timeout_talk", 3) == 0) {
+           time_t new_tot = 0;
+           new_tot = strtoul(val, NULL, 10);
+
+           if (new_tot > 0) {
+              r->timeout_talk = new_tot;
            }
          }
       } else {

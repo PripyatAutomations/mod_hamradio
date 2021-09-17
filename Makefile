@@ -1,6 +1,6 @@
 #LOCALC_FLAGS=
 MODNAME = mod_hamradio.so
-MODOBJS += mod_hamradio.o dict.o dconf.o radio.o radio_gpio.o #radio_rigctl.o
+MODOBJS += mod_hamradio.o dict.o config.o radio.o radio_gpio.o radio_rigctl.o
 MODCFLAGS = -Wall -Werror
 MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod
  

@@ -18,7 +18,7 @@
  */
 #include <switch.h>
 #include "mod_hamradio.h"
-#include "dconf.h"
+#include "config.h"
 
 Globals_t globals;
 
@@ -294,39 +294,41 @@ switch_status_t load_configuration(switch_bool_t reload) {
 //      switch_mutex_init(globals.mutex, SWITCH_THREAD_MUTEX_UNNESTED, /* XXX Figure out pool */
 //   switch_mutex_lock(globals.mutex);
 
-   // if gpiochip is mapped, we need to unmap all the lines then the chip
-   if (globals.gpiochip != NULL) {
-      // Unmap the lines for each radio
-      for (int i = 0; i < MAX_RADIOS; i++) {
-         if (globals.Radios[i].gpio_power != NULL) {
-            // Unmap the line
-            gpiod_line_release(globals.Radios[i].gpio_power);
+   if (reload == true) {
+      // if gpiochip is mapped, we need to unmap all the lines then the chip
+      if (globals.gpiochip != NULL) {
+         // Unmap the lines for each radio
+         for (int i = 0; i < MAX_RADIOS; i++) {
+            if (globals.Radios[i].gpio_power != NULL) {
+               // Unmap the line
+               gpiod_line_release(globals.Radios[i].gpio_power);
+            }
+
+            if (globals.Radios[i].gpio_ptt != NULL) {
+               // Unmap the line
+               gpiod_line_release(globals.Radios[i].gpio_ptt);
+            }
+
+            if (globals.Radios[i].gpio_squelch != NULL) {
+               // Unmap the line
+               gpiod_line_release(globals.Radios[i].gpio_squelch);
+            }
          }
 
-         if (globals.Radios[i].gpio_ptt != NULL) {
-            // Unmap the line
-            gpiod_line_release(globals.Radios[i].gpio_ptt);
-         }
-
-         if (globals.Radios[i].gpio_squelch != NULL) {
-            // Unmap the line
-            gpiod_line_release(globals.Radios[i].gpio_squelch);
-         }
+         // Unmap the GPIO chip
+         gpiod_chip_close(globals.gpiochip);
+         globals.gpiochip = NULL;
       }
 
-      // Unmap the GPIO chip
-      gpiod_chip_close(globals.gpiochip);
-      globals.gpiochip = NULL;
-   }
+      // is dictionary existing already? free it if so
+      if (globals.cfg != NULL) {
+         dict_free(globals.cfg);
+         globals.cfg = NULL;
+      }
 
-   // is dictionary existing already? free it if so
-   if (globals.cfg != NULL) {
-      dict_free(globals.cfg);
-      globals.cfg = NULL;
+      // Zero out the rest of configuration structure, such as radio data
+      memset(&globals, 0, sizeof(globals));
    }
-
-   // Zero out the rest of configuration structure, such as radio data
-   memset(&globals, 0, sizeof(globals));
 
    // load the dictionary configuration
    if (!(globals.cfg = dconf_load(HAMRADIO_CONF))) {
