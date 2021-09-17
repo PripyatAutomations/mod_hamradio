@@ -72,7 +72,7 @@ dict *dconf_load(const char *file) {
          continue;
       else if (*skip == '[' && *end == ']') {		// section
          section = strndup(skip + 1, strlen(skip) - 2);
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
+//         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
          continue;
       } else if (*skip == '@') {			// preprocessor
          if (strncasecmp(skip + 1, "if ", 3) == 0) {
@@ -134,7 +134,19 @@ dict *dconf_load(const char *file) {
 
 //         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[cfg:radio%d] setting %s - %s. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
 
-         if (strncasecmp(key, "gpio_power", 10) == 0) {
+         if (strncasecmp(key, "enabled", 7) == 0) {
+           if (!strncasecmp(val, "true", 4) || !strncasecmp(val, "yes", 3) || !strncasecmp(val, "on", 2)) {
+              r->enabled = true;
+           } else {
+              r->enabled = false;
+           }
+         } else if (strncasecmp(key, "ctcss_inband", 12) == 0) {
+           if (!strncasecmp(val, "true", 4) || !strncasecmp(val, "yes", 3) || !strncasecmp(val, "on", 2)) {
+              r->ctcss_inband = true;
+           } else {
+              r->ctcss_inband = false;
+           }
+         } else if (strncasecmp(key, "gpio_power", 10) == 0) {
            int ival = atoi(val);
 
            if (ival == -1) {
@@ -162,18 +174,27 @@ dict *dconf_load(const char *file) {
            } else { 
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
            }
-         } else if (strncasecmp(key, "ctcss_inband", 12) == 0) {
-           // XXX:
-         } else if (strncasecmp(key, "enabled", 7) == 0) {
-           if (!strncasecmp(val, "true", 4) || !strncasecmp(val, "yes", 3) || !strncasecmp(val, "on", 2)) {
-              r->enabled = true;
-           } else {
-              r->enabled = false;
+         } else if (strncasecmp(key, "pa_indev", 8) == 0) {
+           if (val != NULL) {
+              memcpy(r->pa_indev, val, (strlen(val) > (PATH_MAX - 1)) ? strlen(val) : PATH_MAX - 1);
            }
-         } else if (strncasecmp(key, "pa_indev", 8) == 0) {
-           // XXX:
-         } else if (strncasecmp(key, "pa_indev", 8) == 0) {
-           // XXX:
+         } else if (strncasecmp(key, "pa_outdev", 9) == 0) {
+           if (val != NULL) {
+              memcpy(r->pa_outdev, val, (strlen(val) > (PATH_MAX - 1)) ? strlen(val) : PATH_MAX - 1);
+           }
+         } else if (strncasecmp(key, "squelch_mode", 12) == 0) {
+           if (!strncasecmp(val, "gpio", 4) == 0) {
+              r->RX_mode = SQUELCH_GPIO;
+           } else if (!strncasecmp(val, "vox", 3) == 0) {
+              r->RX_mode = SQUELCH_VOX;
+           } else
+              r->RX_mode = SQUELCH_MANUAL;
+         } else if (strncasecmp(key, "squelch_invert", 14) == 0) {
+           if (!strncasecmp(val, "true", 4) || !strncasecmp(val, "yes", 3) || !strncasecmp(val, "on", 2)) {
+              r->squelch_invert = true;
+           } else {
+              r->squelch_invert = false;
+           }
          }
       } else {
          switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Unknown configuration section '%s' parsing '%s' at %s:%d\n", section, buf, file, line);

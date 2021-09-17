@@ -57,7 +57,7 @@ int radio_gpio_init(const int radio) {
    }
    gpiod_line_request_output(r->gpio_ptt, "ptt", 0);
 
-   if (r->RX_mode == SQUELCH_MODE_GPIO) {
+   if (r->RX_mode == SQUELCH_GPIO) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d initializing GPIO squelch input\n", radio);
 
       // connect to the GPIO line

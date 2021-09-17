@@ -30,9 +30,9 @@ typedef enum {
 // Radio Data //
 ////////////////
 typedef enum RadioRXMode {
-   SQUELCH_MODE_MANUAL = 0,		// No automatic TX, manual control via API
-   SQUELCH_MODE_GPIO,			// TX when squelch GPIO is present
-   SQUELCH_MODE_VOX			// Use Voice Activity Detection to decide
+   SQUELCH_MANUAL = 0,		// No automatic TX, manual control via API
+   SQUELCH_GPIO,			// TX when squelch GPIO is present
+   SQUELCH_VOX			// Use Voice Activity Detection to decide
 } RadioRXMode_t;
 
 typedef enum RadioStatus { RADIO_ERROR = -2, RADIO_DISABLED = -1, RADIO_OFF = 0, RADIO_IDLE, RADIO_RX, RADIO_TX } RadioStatus_t;
@@ -57,6 +57,10 @@ struct Radio {
 
    // Radio status
    enum RadioStatus status;
+
+   // Flags
+   int ctcss_inband;				// Does radio pass CTCSS tones?
+   int squelch_invert;				// Is squelch inpout inverted?
 
    // Statistics
    time_t	talk_start;		// 0 if not active or time(NULL) of start of transmission

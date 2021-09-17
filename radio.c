@@ -299,9 +299,5 @@ int radio_dump_state_var(const int radio) {
       return SWITCH_STATUS_FALSE;
    }
 
-//   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "  => enabled: %d rx_mode: %d status: %s\n", r->enabled, r->RX_mode, radio_status_msgs[r->status]);
-//   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "  => pin_power: %d pin_ptt: %d pin_squelch: %d\n", r->pin_power, r->pin_ptt, r->pin_squelch);
-//   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "  => gpiod addr power: %p ptt: %p squelch: %p\n", r->gpio_power, r->gpio_ptt, r->gpio_squelch);
-
    return SWITCH_STATUS_SUCCESS;
 }

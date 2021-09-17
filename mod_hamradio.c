@@ -300,17 +300,23 @@ switch_status_t load_configuration(switch_bool_t reload) {
       for (int i = 0; i < MAX_RADIOS; i++) {
          if (globals.Radios[i].gpio_power != NULL) {
             // Unmap the line
+            gpiod_line_release(globals.Radios[i].gpio_power);
          }
 
          if (globals.Radios[i].gpio_ptt != NULL) {
             // Unmap the line
+            gpiod_line_release(globals.Radios[i].gpio_ptt);
          }
 
          if (globals.Radios[i].gpio_squelch != NULL) {
             // Unmap the line
+            gpiod_line_release(globals.Radios[i].gpio_squelch);
          }
       }
+
       // Unmap the GPIO chip
+      gpiod_chip_close(globals.gpiochip);
+      globals.gpiochip = NULL;
    }
 
    // is dictionary existing already? free it if so
@@ -328,13 +334,11 @@ switch_status_t load_configuration(switch_bool_t reload) {
       return SWITCH_STATUS_FALSE;
    }
 
-   globals.radios = 2;
-   globals.Radios[0].RX_mode = SQUELCH_MODE_VOX;
-   globals.Radios[1].RX_mode = SQUELCH_MODE_MANUAL;
-
    // Initialize GPIO chip(s)
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "gpio chip is: %s\n", dconf_get_str("gpiochip", "gpiochip99"));
    radio_gpiochip_init(dconf_get_str("gpiochip", "gpiochip0"));
+
+   // XXX: Get rid of this
+   globals.radios = 2;
 
    // step through all the configured radios and initialize their GPIO lines
    for (int radio = 0; radio < globals.radios; radio++) {
@@ -343,7 +347,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
       // initialize their libgpiod interfaces
       radio_gpio_init(radio);
 
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] Bringing up radio%d (GPIO) with settings:\n", radio);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] Bringing up radio%d (GPIO)\n", radio);
       radio_dump_state_var(radio);
 
       if (r->enabled)
