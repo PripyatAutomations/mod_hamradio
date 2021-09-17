@@ -248,7 +248,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       int active_radios = 0;
       
       if (argc == 1) {
-         stream->write_function(stream, "*** Status for ALL radios ***\n");
+//         stream->write_function(stream, "*** Status for ALL radios ***\n");
          for (int i = 0; i < globals.radios; i++) {
             enum RadioStatus rs = radio_get_state(i);
 
@@ -257,7 +257,7 @@ SWITCH_STANDARD_API(hamradio_function) {
 
             radio_dump_state_var(i);
          }
-         stream->write_function(stream, "*** (%d/%d units active) ***\n", active_radios, globals.radios);
+//         stream->write_function(stream, "*** (%d/%d units active) ***\n", active_radios, globals.radios);
       } else if (argc == 2) {
          int radio = atoi(argv[1]);
 
