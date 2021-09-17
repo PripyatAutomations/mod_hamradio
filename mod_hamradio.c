@@ -334,7 +334,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
 
    // Initialize GPIO chip(s)
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "gpio chip is: %s\n", dconf_get_str("gpiochip", "gpiochip99"));
-   radio_gpiochip_init(dconf_get_str("gpiochip", "gpiochip99"));
+   radio_gpiochip_init(dconf_get_str("gpiochip", "gpiochip0"));
 
    // step through all the configured radios and initialize their GPIO lines
    for (int radio = 0; radio < globals.radios; radio++) {

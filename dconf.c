@@ -16,20 +16,6 @@
 #include "dict.h"
 #include "dconf.h"
 
-//struct conf conf;
-
-/////////////////
-// in progress //
-#define	CONF_SECT_KEYVAL	0x01
-#define	CONF_SECT_DICT		0x02
-#define	CONF_SECT_CUSTOM	0x04
-
-struct ConfigFile {
-   char section;
-   int section_type;
-};
-/////////////////
-
 dict *dconf_load(const char *file) {
    int line = 0, errors = 0, warnings = 0;
    int         in_comment = 0;
@@ -103,7 +89,7 @@ dict *dconf_load(const char *file) {
       // Configuration data *MUST* be inside of a section, no exceptions.
       if (!section) {
          switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "config %s:%d: line outside of section: %s\n", file, line, buf);
-         warnings++;
+         errors++;
          continue;
       }
 
