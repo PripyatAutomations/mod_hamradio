@@ -130,9 +130,11 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         gpiod_line_set_value(r->gpio_power, 0);
         break;
      case RADIO_IDLE:
-     case RADIO_RX:		// This is essentially the same thing but may need to change soon for VAD...
-        if (r->talk_start > 0)
+     case RADIO_RX:	// This is essentially the same thing but may need to change soon for VAD...
+        if (r->talk_start > 0) {
            qso_length = time(NULL) - r->talk_start;
+           switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was transmitting for %lu seconds...\n", radio, qso_length);
+        }
 
         // XXX: Turn off the timeout timer, if still set
 
@@ -149,7 +151,6 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
 
         // Clear talk time for TOT
         r->talk_start = 0;
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was transmitting for %lu seconds...\n", radio, qso_length);
         break;
      case RADIO_TX:
         // Start timers here for TOT, but don't restart it if we didn't stop TXing...
