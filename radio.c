@@ -11,7 +11,7 @@
 // radio_get_status_str //
 //////////////////////////
 // Reduce duplication of code...
-static const char *radio_status_msgs[4] = { "OFF", "Idle", "Transmitting", NULL };
+static const char *radio_status_msgs[4] = { "OFF", "Idle", "Receiving", "Transmitting", NULL };
 static const char *radio_get_status_str(const int radio) {
     Radio_t *r = NULL;
 
