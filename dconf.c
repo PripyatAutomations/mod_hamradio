@@ -147,12 +147,36 @@ dict *dconf_load(const char *file) {
          key = strtok(skip, "= \n");
          val = strtok(NULL, "= \n");
 
+//         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[cfg:radio%d] setting %s - %s. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
+
          if (strncasecmp(key, "gpio_power", 10) == 0) {
-           // XXX:
+           int ival = atoi(val);
+
+           if (ival == -1) {
+              // Some people don't use power contrl...
+           } else if (ival >= 0 && ival <= MAX_GPIO) {
+              r->pin_power = ival;
+           } else { 
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
+           }
          } else if (strncasecmp(key, "gpio_ptt", 8) == 0) {
-           // XXX:
+           int ival = atoi(val);
+
+           if (ival >= 0 && ival <= MAX_GPIO) {
+              r->pin_ptt = ival;
+           } else { 
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
+           }
          } else if (strncasecmp(key, "gpio_squelch", 12) == 0) {
-           // XXX:
+           int ival = atoi(val);
+
+           if (ival == -1) {
+              // Some devices don't have squelch output...
+           } else if (ival >= 0 && ival <= MAX_GPIO) {
+              r->pin_squelch = ival;
+           } else { 
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
+           }
          } else if (strncasecmp(key, "ctcss_inband", 12) == 0) {
            // XXX:
          } else if (strncasecmp(key, "enabled", 7) == 0) {

@@ -301,15 +301,8 @@ switch_status_t load_configuration(switch_bool_t reload) {
    }
 
    globals.radios = 2;
-   globals.Radios[0].pin_power = 17;
-   globals.Radios[0].pin_ptt = 5;
    globals.Radios[0].RX_mode = SQUELCH_MODE_VOX;
-   globals.Radios[0].enabled = 1;
-   globals.Radios[1].pin_power = 18;
-   globals.Radios[1].pin_ptt = 6;
    globals.Radios[1].RX_mode = SQUELCH_MODE_MANUAL;
-   globals.Radios[1].enabled = 1;
-   globals.Radios[0].pin_squelch = globals.Radios[1].pin_squelch = -1;
 
    // Initialize GPIO chip(s)
    radio_gpiochip_init("gpiochip0");

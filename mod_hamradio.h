@@ -15,6 +15,7 @@
 // This is the maximum number of radios that can be configured
 // I'm not sure why you would have more than 8 on a pi, but it might work!
 #define	MAX_RADIOS	8
+#define	MAX_GPIO	128		// maximum GPIO pin # (this is intentionally high)
 
 // This will be used to keep track of the state of a channel's voice activity
 typedef enum {
