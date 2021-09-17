@@ -64,7 +64,7 @@ SWITCH_STANDARD_API(hamradio_function) {
                        "   hamradio power [radio] <on|off>\n"
                        "   hamradio ptt [radio] <on|off>\n"
                        "   hamradio reload\n"
-                       "   hamradio status\n"
+                       "   hamradio status <radio>\n"
                        "   hamradio disable [radio]\n"
                        "   hamradio enable [radio]\n"
                        "   hamradio id <radio>\n";
@@ -261,7 +261,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 2) {
          int radio = atoi(argv[1]);
 
-         stream->write_function(stream, "radio%s:\n", argv[1]);
+         stream->write_function(stream, "radio%s:", argv[1]);
 	 if (radio < 0 || radio >= MAX_RADIOS) {
 	    err_invalid_radio(radio);
 	    status = SWITCH_STATUS_FALSE;
@@ -269,6 +269,7 @@ SWITCH_STANDARD_API(hamradio_function) {
 	 }
 
          radio_print_status(stream, radio);
+         radio_dump_state_var(radio);
       } else {
          stream->write_function(stream, "USAGE:\nhamradio status <radio>\n");
          goto done;
@@ -326,9 +327,10 @@ switch_status_t load_configuration(switch_bool_t reload) {
          globals.cfg = NULL;
       }
 
-      // Zero out the rest of configuration structure, such as radio data
-      memset(&globals, 0, sizeof(globals));
    }
+
+   // Zero out the configuration structure, such as radio data
+   memset(&globals, 0, sizeof(globals));
 
    // load the dictionary configuration
    if (!(globals.cfg = dconf_load(HAMRADIO_CONF))) {

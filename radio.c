@@ -69,10 +69,13 @@ int radio_disable(const int radio) {
    return RADIO_OFF;
 }
 
+/////////////
+// XXX: This belongs split up and most of the current code into radio_gpio
 // Set the radio combinead (power and ptt) state in one call
 RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    Radio_t *r = NULL;
    RadioStatus_t old_status;
+   time_t qso_length = 0;
 
    // Negative values aren't allowed in the struct but can be returned in case of error
    if (val < 0) {
@@ -127,8 +130,11 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         gpiod_line_set_value(r->gpio_power, 0);
         break;
      case RADIO_IDLE:
-     case RADIO_RX:		// This is essentially the same thing
-        // XXX: Turn off the timeout timer
+     case RADIO_RX:		// This is essentially the same thing but may need to change soon for VAD...
+        if (r->talk_start > 0)
+           qso_length = time(NULL) - r->talk_start;
+
+        // XXX: Turn off the timeout timer, if still set
 
         // XXX: Check when last IDed and pause then send a tailing identification
 
@@ -139,10 +145,11 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         gpiod_line_set_value(r->gpio_power, 1);
 
         // save the total time transmitted
-        r->total_tx += (time(NULL) - r->talk_start);
+        r->total_tx += qso_length;
 
         // Clear talk time for TOT
         r->talk_start = 0;
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was transmitting for %lu seconds...\n", radio, qso_length);
         break;
      case RADIO_TX:
         // Start timers here for TOT, but don't restart it if we didn't stop TXing...
