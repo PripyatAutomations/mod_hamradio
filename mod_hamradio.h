@@ -16,6 +16,7 @@
 // I'm not sure why you would have more than 8 on a pi, but it might work!
 #define	MAX_RADIOS	8
 #define	MAX_GPIO	128		// maximum GPIO pin # (this is intentionally high)
+#define	HAMRADIO_CONF	"/etc/freeswitch/hamradio.conf" // configuration file
 
 // This will be used to keep track of the state of a channel's voice activity
 typedef enum {
@@ -34,7 +35,7 @@ typedef enum RadioRXMode {
    SQUELCH_MODE_VOX			// Use Voice Activity Detection to decide
 } RadioRXMode_t;
 
-typedef enum RadioStatus { RADIO_ERROR = -2, RADIO_DISABLED = -1, RADIO_OFF = 0, RADIO_IDLE, RADIO_TX } RadioStatus_t;
+typedef enum RadioStatus { RADIO_ERROR = -2, RADIO_DISABLED = -1, RADIO_OFF = 0, RADIO_IDLE, RADIO_RX, RADIO_TX } RadioStatus_t;
 
 struct Radio {
    int		enabled;		// Is channel enabled?
@@ -72,6 +73,7 @@ struct Globals {
    int radios;
    struct Radio Radios[MAX_RADIOS];	// Radio structures
    switch_mutex_t *mutex;
+   dict *cfg;				// configuration from .conf
 
    // libgpiod structures
    struct gpiod_chip *gpiochip;

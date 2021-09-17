@@ -15,9 +15,8 @@
 #include "mod_hamradio.h"
 #include "dict.h"
 #include "dconf.h"
-#define	JAILCONF_SIZE	16384		// should be plenty...
 
-struct conf conf;
+//struct conf conf;
 
 /////////////////
 // in progress //
@@ -103,7 +102,7 @@ dict *dconf_load(const char *file) {
 
       // Configuration data *MUST* be inside of a section, no exceptions.
       if (!section) {
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "config %s:%d: line outside of section: %s", file, line, buf);
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "config %s:%d: line outside of section: %s\n", file, line, buf);
          warnings++;
          continue;
       }
@@ -137,7 +136,7 @@ dict *dconf_load(const char *file) {
          }
 
          if (radio < 0 || radio > MAX_RADIOS) {
-           switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Radio configuration [%s] ignored - we only support %d MAX_RADIOS. (parsing '%s' at %s:%d)", section, MAX_RADIOS, buf, file, line);
+           switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Radio configuration [%s] ignored - we only support %d MAX_RADIOS. (parsing '%s' at %s:%d)\n", section, MAX_RADIOS, buf, file, line);
            continue;
          }
 
@@ -191,12 +190,12 @@ dict *dconf_load(const char *file) {
            // XXX:
          }
       } else {
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Unknown configuration section '%s' parsing '%s' at %s:%d", section, buf, file, line);
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Unknown configuration section '%s' parsing '%s' at %s:%d\n", section, buf, file, line);
          warnings++;
       }
    } while (!feof(fp));
 
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "configuration loaded with %d errors and %d warnings from %s (%d lines)", errors, warnings, file, line);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "configuration loaded with %d errors and %d warnings from %s (%d lines)\n", errors, warnings, file, line);
    fclose(fp);
 
    return cp;

@@ -286,17 +286,45 @@ done:
 ////////////////////////
 switch_status_t load_configuration(switch_bool_t reload) {
    switch_status_t status = SWITCH_STATUS_FALSE;
-   dict *radio_cfg;
+
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] %sloading configuration from hamradio.conf\n", (reload ? "re" : ""));
 
 // XXX: get this shite sorted out so we can reload safely
 //   if (globals.mutex == NULL)
 //      switch_mutex_init(globals.mutex, SWITCH_THREAD_MUTEX_UNNESTED, /* XXX Figure out pool */
 //   switch_mutex_lock(globals.mutex);
 
+   // if gpiochip is mapped, we need to unmap all the lines then the chip
+   if (globals.gpiochip != NULL) {
+      // Unmap the lines for each radio
+      for (int i = 0; i < MAX_RADIOS; i++) {
+         if (globals.Radios[i].gpio_power != NULL) {
+            // Unmap the line
+         }
+
+         if (globals.Radios[i].gpio_ptt != NULL) {
+            // Unmap the line
+         }
+
+         if (globals.Radios[i].gpio_squelch != NULL) {
+            // Unmap the line
+         }
+      }
+      // Unmap the GPIO chip
+   }
+
+   // is dictionary existing already? free it if so
+   if (globals.cfg != NULL) {
+      dict_free(globals.cfg);
+      globals.cfg = NULL;
+   }
+
+   // Zero out the rest of configuration structure, such as radio data
    memset(&globals, 0, sizeof(globals));
 
-   if (!(radio_cfg = dconf_load("/etc/freeswitch/hamradio.conf"))) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] loading configuration from hamradio.conf failed\n");
+   // load the dictionary configuration
+   if (!(globals.cfg = dconf_load(HAMRADIO_CONF))) {
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[mod_hamradio] %sloading configuration from hamradio.conf failed. Please examine the DEBUG level log output from mod_hamradio to see why!\n", (reload ? "re" : ""));
       return SWITCH_STATUS_FALSE;
    }
 
@@ -305,7 +333,8 @@ switch_status_t load_configuration(switch_bool_t reload) {
    globals.Radios[1].RX_mode = SQUELCH_MODE_MANUAL;
 
    // Initialize GPIO chip(s)
-   radio_gpiochip_init("gpiochip0");
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "gpio chip is: %s\n", dconf_get_str("gpiochip", "gpiochip99"));
+   radio_gpiochip_init(dconf_get_str("gpiochip", "gpiochip99"));
 
    // step through all the configured radios and initialize their GPIO lines
    for (int radio = 0; radio < globals.radios; radio++) {
@@ -327,8 +356,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
 
 static void event_handler(switch_event_t *event) {
    if (event->event_id == SWITCH_EVENT_RELOADXML) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "mod_hamradio ignoring reload for now...\n");
-//      load_configuration(1);
+      load_configuration(true);
    }
 }
 
