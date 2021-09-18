@@ -449,13 +449,27 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
       for (int radio = 0; radio < globals.max_radios; radio++) {
          Radio_t *r = &globals.Radios[radio];
 
-         // Only bother checking TOT if this radio is transmitting
-         if (r->status == RADIO_TX) {
-            // is a timeout timer set?
+         // Another second has passed, reduce penalty time on this radio
+         if (r->penalty > 0)
+            r->penalty--;
+
+         // penalty expired or in case somewhere screwed up...
+         if (r->penalty <= 0) {
+            r->penalty = 0;
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d penalty cleared\n", radio);
+         }
+
+         if (r->status == RADIO_RX) {
+            // Here we should do receive radio stuff
+         } else if (r->status == RADIO_TX) {
+            // is a timeout timer set on this channel?
             if (r->timeout_talk > 0) {
                // Has the timer expired?
                if (r->talk_start + r->timeout_talk <= time(NULL)) {
-                  // XXX: Play a status tone to indicate TimeOut
+                  switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "radio%d ending transmission (TOT expired: %s)\n", radio, time_to_timestr(r->timeout_talk));
+                  // XXX: Optionally Play a status tone to indicate penalty status
+                  // XXX: Figure out which RX radio is causing this TOT and punish it with the transmitter's penalty time
+                  // globals.Radios[rx_radio]->penalty += r->timeout_penalty;
                   radio_ptt_off(radio);
                }
             }

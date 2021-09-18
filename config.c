@@ -213,6 +213,16 @@ dict *dconf_load(const char *file) {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[%s] Invalid timeout_talk value '%s' parsing '%s' at %s:%d\n", section, val, buf, file, line);
               warnings++;
            }
+         } else if (strncasecmp(key, "timeout_holdoff", 15) == 0) {
+           int new_holdoff = 0;
+           new_holdoff = timestr_to_time(val, 0);
+
+           if (new_holdoff > 0) {
+              r->timeout_holdoff = new_holdoff;
+           } else {
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[%s] Invalid timeout_penalty value '%s' parsing '%s' at %s:%d\n", section, val, buf, file, line);
+              warnings++;
+           }
          }
       } else {
          switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Unknown configuration section '%s' parsing '%s' at %s:%d\n", section, buf, file, line);
