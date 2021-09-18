@@ -299,6 +299,7 @@ void radio_print_status(switch_stream_handle_t *stream, const int radio) {
    }
 }
 
+// XXX: This needs to be improved so that it uses stream->write_function(stream, ...) instead of switch_log_printf *IF* coming from api
 int radio_dump_state_var(const int radio, switch_bool_t detailed) {
    Radio_t *r;
 
