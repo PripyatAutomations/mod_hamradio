@@ -450,15 +450,14 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
          Radio_t *r = &globals.Radios[radio];
 
          // Another second has passed, reduce penalty time on this radio
-         if (r->penalty > 0)
+         if (r->penalty > 0) {
             r->penalty--;
 
-         // penalty expired or in case somewhere screwed up...
-         if (r->penalty <= 0) {
-            r->penalty = 0;
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d penalty cleared\n", radio);
+            // penalty expired
+            if (r->penalty == 0) {
+               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d penalty cleared\n", radio);
+            }
          }
-
          if (r->status == RADIO_RX) {
             // Here we should do receive radio stuff
          } else if (r->status == RADIO_TX) {
