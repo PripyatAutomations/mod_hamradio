@@ -164,9 +164,9 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         break;
      case RADIO_TX:
         // Start timers here for TOT, but don't restart it if we didn't stop TXing...
-        if (r->talk_start > 0) {
+        if (r->talk_start == 0)
            r->talk_start = time(NULL);
-        }
+
         if (r->pin_ptt)
            radio_gpio_ptt_on(radio);
 
