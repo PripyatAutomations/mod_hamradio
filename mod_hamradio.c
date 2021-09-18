@@ -26,14 +26,38 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load);
 SWITCH_MODULE_DEFINITION(mod_hamradio, mod_hamradio_load, mod_hamradio_shutdown, mod_hamradio_runtime);
 
 // Wrap some of our radio.c stuff for presentation towards the user
-SWITCH_STANDARD_APP(app_radio_ptt_on) { radio_ptt_on(session); }
-SWITCH_STANDARD_APP(app_radio_conference_ptt_on) { radio_conference_ptt_on(session); }
-SWITCH_STANDARD_APP(app_radio_conference_ptt_off) { radio_conference_ptt_off(session); }
-SWITCH_STANDARD_APP(app_radio_ptt_off) { radio_ptt_off(session); }
-SWITCH_STANDARD_APP(app_radio_power_on) { radio_power_on(session); }
-SWITCH_STANDARD_APP(app_radio_power_off) { radio_power_off(session); }
+SWITCH_STANDARD_APP(app_radio_ptt_on) {
+   int radio = 0;
+   radio_ptt_on(radio);
+}
+
+SWITCH_STANDARD_APP(app_radio_conference_ptt_on) {
+   int radio = 0;
+   radio_conf_ptt_on(radio);
+}
+
+SWITCH_STANDARD_APP(app_radio_conference_ptt_off) {
+   int radio = 0;
+   radio_conf_ptt_off(radio);
+}
+
+SWITCH_STANDARD_APP(app_radio_ptt_off) {
+   int radio = 0;
+   radio_ptt_off(radio);
+}
+
+SWITCH_STANDARD_APP(app_radio_power_on) {
+   int radio = 0;
+   radio_power_on(radio);
+}
+
+SWITCH_STANDARD_APP(app_radio_power_off) {
+   int radio = 0;
+   radio_power_off(radio);
+}
 
 SWITCH_STANDARD_APP(app_radio_enable) {
+    // XXX: Figure out which radio need's enabled
     int radio = 0;
     radio_enable(radio);
 }
@@ -136,7 +160,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       if (argc == 1) {
          stream->write_function(stream, "POWER STATUS for ALL radios:\n");
 
-         for (int radio = 0; radio < globals.radios; radio++) {
+         for (int radio = 0; radio < globals.max_radios; radio++) {
             stream->write_function(stream, "radio%d: power ", radio);
 
             if (globals.Radios[radio].status == RADIO_OFF)
@@ -187,7 +211,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       if (argc == 1) {
          stream->write_function(stream, "PTT status for ALL radios:\n");
 
-         for (int radio = 0; radio < globals.radios; radio++) {
+         for (int radio = 0; radio < globals.max_radios; radio++) {
             stream->write_function(stream, "radio%d: ");
 
 	    if (radio_get_state(radio) == RADIO_TX)
@@ -247,7 +271,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       
       if (argc == 1) {
 //         stream->write_function(stream, "*** Status for ALL radios ***\n");
-         for (int i = 0; i < globals.radios; i++) {
+         for (int i = 0; i < globals.max_radios; i++) {
             enum RadioStatus rs = radio_get_state(i);
 
 	    if (rs > RADIO_OFF)
@@ -255,7 +279,7 @@ SWITCH_STANDARD_API(hamradio_function) {
 
             radio_dump_state_var(i);
          }
-//         stream->write_function(stream, "*** (%d/%d units active) ***\n", active_radios, globals.radios);
+//         stream->write_function(stream, "*** (%d/%d units active) ***\n", active_radios, globals.max_radios);
       } else if (argc == 2) {
          int radio = atoi(argv[1]);
 
@@ -314,11 +338,8 @@ switch_status_t load_configuration(switch_bool_t reload) {
    // Initialize GPIO chip(s)
    radio_gpiochip_init(dconf_get_str("gpiochip", "gpiochip0"));
 
-   // XXX: Get rid of this
-   globals.radios = 2;
-
    // step through all the configured radios and initialize their GPIO lines
-   for (int radio = 0; radio < globals.radios; radio++) {
+   for (int radio = 0; radio < globals.max_radios; radio++) {
       Radio_t *r = &globals.Radios[radio];
 
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] Bringing up radio%d\n", radio);
@@ -407,7 +428,7 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "shutting down radio interfaces due to freeswitch shutdown or reload...\n");
 
    // turn off PTT and POWER pins, DISABLE the radio
-   for (int radio = 0; radio < globals.radios; radio++) {
+   for (int radio = 0; radio < globals.max_radios; radio++) {
       radio_set_state(radio, RADIO_OFF);
       globals.Radios[radio].enabled = 0;
    }
@@ -424,7 +445,23 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
 
 SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
    while (globals.alive) {
-      // XXX: Handle housekeeping and Idents/TOTs here
+      for (int radio = 0; radio < globals.max_radios; radio++) {
+         Radio_t *r = &globals.Radios[radio];
+
+         // Only bother checking TOT if this radio is transmitting
+         if (r->status == RADIO_TX) {
+            // is a timeout timer set?
+            if (r->timeout_talk > 0) {
+               // Has the timer expired?
+               if (r->talk_start + r->timeout_talk <= time(NULL)) {
+                  // XXX: Play a status tone to indicate TimeOut
+                  radio_ptt_off(radio);
+               }
+            }
+         }
+
+         // XXX: Check ident timeouts
+      }
       // Sleep for about a second then repeat!
       sleep(1);
       switch_cond_next();

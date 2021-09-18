@@ -124,6 +124,10 @@ dict *dconf_load(const char *file) {
            continue;
          }
 
+         // Update 'max_radios' in globals
+         if (radio > globals.max_radios)
+            globals.max_radios = radio;
+
          r = &globals.Radios[radio];
 
          // Parse configuration line (XXX: GET RID OF STRTOK!)

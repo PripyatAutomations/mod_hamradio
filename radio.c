@@ -190,19 +190,15 @@ RadioStatus_t radio_get_state(const int radio) {
    return (globals.Radios[radio].status);
 }
 
-void radio_ptt_on(switch_core_session_t *session) {
+void radio_ptt_on(int radio) {
    switch_channel_t *channel;
 
-   if (!session) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
-      return;
-   }
-   channel = switch_core_session_get_channel(session);
-
-   switch_assert(channel);
-
-   // XXX: Find the radio attached to this channel...
-   int radio = 0;
+//   if (!session) {
+//      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
+//      return;
+//   }
+//   channel = switch_core_session_get_channel(session);
+//   switch_assert(channel);
 
    // Refuse to TX on disabled radio
    if (!globals.Radios[radio].enabled) {
@@ -219,29 +215,25 @@ void radio_ptt_on(switch_core_session_t *session) {
    radio_set_state(radio, RADIO_TX);
 }
 
-void radio_conference_ptt_on(switch_core_session_t *session) {
+void radio_conf_ptt_on(int radio) {
   // XXX: Enumerate the radios attached to the channel
   // XXX: Call radio_ptt_on for each
 }
 
-void radio_conference_ptt_off(switch_core_session_t *session) {
+void radio_conf_ptt_off(int radio) {
   // XXX: Enumerate the radios attached to the channel
   // XXX: Call radio_ptt_on for each
 }
 
-void radio_ptt_off(switch_core_session_t *session) {
+void radio_ptt_off(int radio) {
    switch_channel_t *channel;
 
-   if (!session) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
-      return;
-   }
-   channel = switch_core_session_get_channel(session);
-
-   switch_assert(channel);
-
-   // XXX: Find the radio attached to the channel...
-   int radio = 0;
+//   if (!session) {
+//      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
+//      return;
+//   }
+//   channel = switch_core_session_get_channel(session);
+//   switch_assert(channel);
 
    if (radio_get_state(radio) == RADIO_OFF)
       return;
@@ -249,19 +241,15 @@ void radio_ptt_off(switch_core_session_t *session) {
    radio_set_state(radio, RADIO_IDLE);
 }
 
-void radio_power_on(switch_core_session_t *session) {
+void radio_power_on(int radio) {
    switch_channel_t *channel;
 
-   if (!session) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
-      return;
-   }
-   channel = switch_core_session_get_channel(session);
-
-   switch_assert(channel);
-
-   // XXX: Find the radio attached to the channel...
-   int radio = 0;
+//   if (!session) {
+//      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
+//      return;
+//   }
+//   channel = switch_core_session_get_channel(session);
+//   switch_assert(channel);
 
    if (!globals.Radios[radio].enabled) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Refusing to power on radio%d in DISABLED state. requested by app\n", radio);
@@ -272,20 +260,16 @@ void radio_power_on(switch_core_session_t *session) {
    }
 }
 
-void radio_power_off(switch_core_session_t *session) {
+void radio_power_off(int radio) {
    switch_channel_t *channel;
 
-   if (!session) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
-      return;
-   }
-   channel = switch_core_session_get_channel(session);
+//   if (!session) {
+//      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
+//      return;
+//   }
+//   channel = switch_core_session_get_channel(session);
 
    switch_assert(channel);
-
-   // XXX: Find the radio attached to the channel...
-   int radio = 0;
-
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Powering OFF radio%d by app request\n", radio);
    radio_set_state(radio, RADIO_OFF);
 }
