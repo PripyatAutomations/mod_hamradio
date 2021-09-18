@@ -265,21 +265,21 @@ SWITCH_STANDARD_API(hamradio_function) {
       }
       goto done;
    } else if (!strcasecmp(argv[0], "reload")) {
-      // load_configuration(1);
+      load_configuration(1);
    } else if (!strcasecmp(argv[0], "status")) {
       int active_radios = 0;
       
       if (argc == 1) {
-//         stream->write_function(stream, "*** Status for ALL radios ***\n");
+         stream->write_function(stream, "*** Status for ALL radios ***\n");
          for (int i = 0; i < globals.max_radios; i++) {
             enum RadioStatus rs = radio_get_state(i);
 
 	    if (rs > RADIO_OFF)
 	       active_radios++;
 
-            radio_dump_state_var(i);
+            radio_dump_state_var(i, false);
          }
-//         stream->write_function(stream, "*** (%d/%d units active) ***\n", active_radios, globals.max_radios);
+         stream->write_function(stream, "*** (%d/%d units active) ***\n", active_radios, globals.max_radios);
       } else if (argc == 2) {
          int radio = atoi(argv[1]);
 
@@ -289,7 +289,7 @@ SWITCH_STANDARD_API(hamradio_function) {
 	    goto done;
 	 }
 
-         radio_dump_state_var(radio);
+         radio_dump_state_var(radio, true);
       } else {
          stream->write_function(stream, "USAGE:\nhamradio status <radio>\n");
          goto done;
@@ -348,7 +348,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
       radio_gpio_init(radio);
 
       // Show some userful information in the log
-      radio_dump_state_var(radio);
+      radio_dump_state_var(radio, true);
 
       // Power it up and make it available for use, if enabled
       if (r->enabled)
@@ -360,6 +360,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
 }
 
 static void event_handler(switch_event_t *event) {
+   // Module reload
    if (event->event_id == SWITCH_EVENT_RELOADXML) {
       load_configuration(true);
    }
@@ -468,14 +469,3 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
    }
    return SWITCH_STATUS_TERM;
 }
-
-/* For Emacs:
- * Local Variables:
- * mode:c
- * indent-tabs-mode:t
- * tab-width:4
- * c-basic-offset:4
- * End:
- * For VIM:
- * vim:set softtabstop=4 shiftwidth=4 tabstop=4 noet
- */

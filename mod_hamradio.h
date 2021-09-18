@@ -6,11 +6,19 @@
 #include <gpiod.h>
 #include <time.h>
 #include <stdlib.h>
+
+// (dict)ionary data type like other languages have
+#include "dict.h"
+
+// ini-style configuration support (yes, i know fs has its own...)
 #include "config.h"
+
 // Common to all radios
 #include "radio.h"
+
 // Support for GPIO controlled (relays/optocouplers and COS/TOS inputs) radios
 #include "radio_gpio.h"
+
 // Support for rigctl controlled radios (NYI)
 #include "radio_rigctl.h"
 

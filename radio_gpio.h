@@ -1,3 +1,6 @@
+#if	!defined(RADIO_GPIO_H)
+#define	RADIO_GPIO_H
+
 /////////////////
 /// prototypes //
 /////////////////
@@ -24,3 +27,4 @@ extern switch_status_t radio_gpio_power_on(int radio);
 
 // Power off
 extern switch_status_t radio_gpio_power_off(int radio);
+#endif	// !defined(RADIO_GPIO_H)

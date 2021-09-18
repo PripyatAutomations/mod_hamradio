@@ -2,8 +2,8 @@
  * No warranty of any kind. Good luck!
  */
 
-#if	!defined(__CONF_H)
-#define	__CONF_H
+#if	!defined(__CONFIG_H)
+#define	__CONFIG_H
 #include <fcntl.h>
 #include "dict.h"
 
@@ -18,4 +18,4 @@ extern dict *dconf_load(const char *file);
 
 #define	_CONF_DICT globals.cfg
 
-#endif                                 /* !defined(__DCONF_H) */
+#endif                                 /* !defined(__CONFIG_H) */

@@ -1,7 +1,8 @@
 #if	!defined(__RADIO_H)
 #define	__RADIO_H
-
+#if	!defined(NO_LIBGPIOD)
 #include <gpiod.h>
+#endif
 
 ////////////////
 // Radio Data //
@@ -38,10 +39,12 @@ struct Radio {
    ///////////////////
    enum RadioStatus status;
 
+#if	!defined(NO_LIBGPIOD)
    // libgpiod data
    struct gpiod_line *gpio_power;	// Power or ignition sense output
    struct gpiod_line *gpio_ptt;		// Push To Talk output
    struct gpiod_line *gpio_squelch;	// squelch (COS or TOS) output from radio
+#endif
 
    ////////////////
    // Statistics //
@@ -81,7 +84,7 @@ extern void radio_conf_ptt_on(int radio);
 extern void radio_conf_ptt_off(int radio);
 
 // Status messages, etc
-extern int radio_dump_state_var(const int radio);
+extern int radio_dump_state_var(const int radio, switch_bool_t detailed);
 
 ///////////////////////////////////////
 // And some inlines that belong here //

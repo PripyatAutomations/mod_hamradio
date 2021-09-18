@@ -4,7 +4,6 @@
  * This code wouldn't be possible without N. Devillard's dictionary.[ch]
  * See dict.[ch] for slightly modified version of his code or search google for original
  */
-//#define	_BSD_SOURCE
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -99,14 +98,12 @@ dict *dconf_load(const char *file) {
 
       // Handle configuration sections
       if (strncasecmp(section, "general", 7) == 0) {
-         // Parse configuration line (XXX: GET RID OF STRTOK!)
          key = strtok(skip, "= \n");
          val = strtok(NULL, "= \n");
 
-         // Store value
+         // Store value in the dictionary (globals.cfg)
          dict_add(cp, key, val);
       } else if (strncasecmp(section, "conference", 10) == 0) {
-         // Parse configuration line (XXX: GET RID OF STRTOK!)
          key = strtok(skip, "= \n");
          val = strtok(NULL, "= \n");
       } else if (strncasecmp(section, "radio", 5) == 0) {
@@ -129,8 +126,6 @@ dict *dconf_load(const char *file) {
             globals.max_radios = radio;
 
          r = &globals.Radios[radio];
-
-         // Parse configuration line (XXX: GET RID OF STRTOK!)
          key = strtok(skip, "= \n");
          val = strtok(NULL, "= \n");
 
@@ -151,9 +146,11 @@ dict *dconf_load(const char *file) {
          } else if (strncasecmp(key, "gpio_power", 10) == 0) {
            int ival = atoi(val);
 
-           if (ival == -1) {
-              // Some people don't use power contrl...
-           } else if (ival >= 0 && ival <= MAX_GPIO) {
+           // Some people don't use power control, -1 is a valid setting to indicate 'disabled'...
+           if (ival == -1)
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[cfg:radio%d] gpio power control disabled.\n", radio);
+
+           if (ival >= -1 && ival <= MAX_GPIO) {
               r->pin_power = ival;
            } else { 
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
@@ -161,7 +158,11 @@ dict *dconf_load(const char *file) {
          } else if (strncasecmp(key, "gpio_ptt", 8) == 0) {
            int ival = atoi(val);
 
-           if (ival >= 0 && ival <= MAX_GPIO) {
+           if (ival == -1)
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[cfg:radio%d] gpio ptt control disabled.\n", radio);
+
+           // Receivers won't have a PTT pin, -1 is valid setting to indicate 'disabled'...
+           if (ival >= -1 && ival <= MAX_GPIO) {
               r->pin_ptt = ival;
            } else { 
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
@@ -169,19 +170,24 @@ dict *dconf_load(const char *file) {
          } else if (strncasecmp(key, "gpio_squelch", 12) == 0) {
            int ival = atoi(val);
 
-           if (ival == -1) {
-              // Some devices don't have squelch output...
-           } else if (ival >= 0 && ival <= MAX_GPIO) {
+           // Some devices don't have squelch output, -1 is a valid setting to indicate 'disabled'...
+           if (ival == -1)
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[cfg:radio%d] gpio squlech input disabled.\n", radio);
+           if (ival >= -1 && ival <= MAX_GPIO) {
               r->pin_squelch = ival;
            } else { 
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
            }
          } else if (strncasecmp(key, "pa_indev", 8) == 0) {
            if (val != NULL) {
+              // Zero out the buffer then copy our setting in
+              memset(r->pa_indev, 0, sizeof(r->pa_indev));
               memcpy(r->pa_indev, val, (strlen(val) > (PATH_MAX - 1)) ? strlen(val) : PATH_MAX - 1);
            }
          } else if (strncasecmp(key, "pa_outdev", 9) == 0) {
            if (val != NULL) {
+              // Zero out the buffer then copy our setting in
+              memset(r->pa_outdev, 0, sizeof(r->pa_outdev));
               memcpy(r->pa_outdev, val, (strlen(val) > (PATH_MAX - 1)) ? strlen(val) : PATH_MAX - 1);
            }
          } else if (strncasecmp(key, "squelch_mode", 12) == 0) {
