@@ -245,13 +245,13 @@ SWITCH_STANDARD_API(hamradio_function) {
 	 }
 
 	 if (!globals.Radios[radio].enabled) {
-	    stream->write_function(stream, "Denying PTT request (via cli) for radio%d because it is in DISABLED state\n", radio);
+	    stream->write_function(stream, "Denying PTT request (via cli) for radio%d because it is in DISABLED state.\n", radio);
 	    status = SWITCH_STATUS_FALSE;
 	    goto done;
 	 }
 
          if (radio_get_state(radio) == RADIO_OFF) {
-	    stream->write_function(stream, "Ignoring PTT request (via cli) for radio%d because it is in DISABLED state\n", radio);
+	    stream->write_function(stream, "Ignoring PTT request (via cli) for radio%d because it is powered off.\n", radio);
 	    status = SWITCH_STATUS_FALSE;
 	    goto done;
          }
@@ -261,7 +261,8 @@ SWITCH_STANDARD_API(hamradio_function) {
 	 else
 	    radio_set_state(radio, RADIO_IDLE);
 
-         stream->write_function(stream, "PTT for radio %d SET to %s\n", radio, (val ? "ON" : "OFF"));
+         stream->write_function(stream, "PTT for radio %d SET to %s.\n", radio, (val ? "ON" : "OFF"));
+
       }
       goto done;
    } else if (!strcasecmp(argv[0], "reload")) {
