@@ -1,7 +1,6 @@
 #include <switch.h>
 #include <gpiod.h>
 #include "mod_hamradio.h"
-#include "radio_gpio.h"
 
 // right now we only support one gpio chip, but this wrapper should ease transition
 struct gpiod_chip *radio_find_gpiochip(const char *name) {
@@ -71,5 +70,97 @@ int radio_gpio_init(const int radio) {
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[gpio] Attached GPIOs for radio%d: power=%p ptt=%p squelch=%p\n", radio,
                      r->gpio_power, r->gpio_ptt, r->gpio_squelch);
 
+   return SWITCH_STATUS_SUCCESS;
+}
+
+switch_status_t radio_gpio_fini(void) {
+   // if gpiochip is mapped, we need to unmap all the lines then the chip
+   if (globals.gpiochip != NULL) {
+      // Unmap the lines for each radio
+      for (int i = 0; i < MAX_RADIOS; i++) {
+         if (globals.Radios[i].gpio_power != NULL) {
+            // Unmap the line
+            gpiod_line_release(globals.Radios[i].gpio_power);
+         }
+
+         if (globals.Radios[i].gpio_ptt != NULL) {
+            // Unmap the line
+            gpiod_line_release(globals.Radios[i].gpio_ptt);
+         }
+
+         if (globals.Radios[i].gpio_squelch != NULL) {
+            // Unmap the line
+            gpiod_line_release(globals.Radios[i].gpio_squelch);
+         }
+      }
+
+      // Unmap the GPIO chip
+      gpiod_chip_close(globals.gpiochip);
+      globals.gpiochip = NULL;
+   }
+   return SWITCH_STATUS_SUCCESS;
+}
+
+switch_status_t radio_gpio_ptt_on(int radio) {
+   Radio_t *r;
+
+   if (radio < 0 || radio >= MAX_RADIOS) {
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
+      err_invalid_radio(radio);
+      return SWITCH_STATUS_FALSE;
+   }
+
+   // Shorthand
+   r = &globals.Radios[radio];
+
+   gpiod_line_set_value(r->gpio_ptt, 1);
+   return SWITCH_STATUS_SUCCESS;
+}
+
+switch_status_t radio_gpio_ptt_off(int radio) {
+   Radio_t *r;
+
+   if (radio < 0 || radio >= MAX_RADIOS) {
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
+      err_invalid_radio(radio);
+      return SWITCH_STATUS_FALSE;
+   }
+
+   // Shorthand
+   r = &globals.Radios[radio];
+
+   gpiod_line_set_value(r->gpio_ptt, 0);
+   return SWITCH_STATUS_SUCCESS;
+}
+
+switch_status_t radio_gpio_power_on(int radio) {
+   Radio_t *r;
+
+   if (radio < 0 || radio >= MAX_RADIOS) {
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
+      err_invalid_radio(radio);
+      return SWITCH_STATUS_FALSE;
+   }
+
+   // Shorthand
+   r = &globals.Radios[radio];
+
+   gpiod_line_set_value(r->gpio_power, 1);
+   return SWITCH_STATUS_SUCCESS;
+}
+
+switch_status_t radio_gpio_power_off(int radio) {
+   Radio_t *r;
+
+   if (radio < 0 || radio >= MAX_RADIOS) {
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
+      err_invalid_radio(radio);
+      return SWITCH_STATUS_FALSE;
+   }
+
+   // Shorthand
+   r = &globals.Radios[radio];
+
+   gpiod_line_set_value(r->gpio_power, 0);
    return SWITCH_STATUS_SUCCESS;
 }

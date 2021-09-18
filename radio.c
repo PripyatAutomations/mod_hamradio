@@ -4,7 +4,6 @@
  * Here we handle the radio control logics
  */
 #include <switch.h>
-#include <gpiod.h>
 #include "mod_hamradio.h"
 
 //////////////////////////
@@ -76,6 +75,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    Radio_t *r = NULL;
    RadioStatus_t old_status;
    time_t qso_length = 0;
+   switch_status_t rv = SWITCH_STATUS_SUCCESS;
 
    // Negative values aren't allowed in the struct but can be returned in case of error
    if (val < 0) {
@@ -104,14 +104,19 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    // Set the new channel state
    r->status = val;
 
-   // Are either gpio pin disconnected from libgpiod?
-   if (r->gpio_ptt == NULL)
+   // If we're using GPIO for a pin (pin_* is set) then make sure it's connected
+   if (r->pin_ptt >= 0 && r->gpio_ptt == NULL) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio] set_state(%s) called but radio %d doesn't have PTT gpio plumbed. [ptr:%p]\n", radio_status_msgs[val], radio, r->gpio_ptt);
+      rv = SWITCH_STATUS_FALSE;
+   }
 
-   if (r->gpio_power == NULL)
+   if (r->pin_power >= 0 && r->gpio_power == NULL) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio] set_state(%s) called but radio %d doesn't have POWER gpio plumbed. [ptr:%p]\n", radio_status_msgs[val], radio, r->gpio_power);
+      rv = SWITCH_STATUS_FALSE;
+   }
 
-   if (r->gpio_ptt == NULL || r->gpio_power == NULL)
+   // Are any configured controls missing?
+   if (rv == SWITCH_STATUS_FALSE)
       return RADIO_ERROR;
 
    // What status has been requested?
@@ -125,9 +130,12 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         break;
      case RADIO_OFF:
         // Clear PTT
-        gpiod_line_set_value(r->gpio_ptt, 0);
+        if (r->pin_ptt)
+           radio_gpio_ptt_off(radio);
+
         // Turn off IGN SENS or POWER RELAY
-        gpiod_line_set_value(r->gpio_power, 0);
+        if (r->pin_power)
+           radio_gpio_power_off(radio);
         break;
      case RADIO_IDLE:
      case RADIO_RX:	// This is essentially the same thing but may need to change soon for VAD...
@@ -141,10 +149,12 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         // XXX: Check when last IDed and pause then send a tailing identification
 
         // Clear PTT
-        gpiod_line_set_value(r->gpio_ptt, 0);
+        if (r->pin_ptt)
+           radio_gpio_ptt_off(radio);
 
         // Ensure POWER is ON, if it wasn't previously
-        gpiod_line_set_value(r->gpio_power, 1);
+        if (r->pin_power)
+           radio_gpio_power_on(radio);
 
         // save the total time transmitted
         r->total_tx += qso_length;
@@ -157,13 +167,13 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         if (r->talk_start > 0) {
            r->talk_start = time(NULL);
         }
-        gpiod_line_set_value(r->gpio_ptt, 1);
-        // XXX: Set a timer here to timeout the TX
+        if (r->pin_ptt)
+           radio_gpio_ptt_on(radio);
+
         break;
    }
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "[radio] radio%d STATUS change (%s) => (%s)\n", radio, radio_status_msgs[old_status], radio_get_status_str(radio));
-
    return r->status;
 }
 

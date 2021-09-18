@@ -13,8 +13,6 @@
 #include <strings.h>
 #include <string.h>
 #include "mod_hamradio.h"
-#include "dict.h"
-#include "config.h"
 
 dict *dconf_load(const char *file) {
    int line = 0, errors = 0, warnings = 0;

@@ -1,4 +1,2 @@
-#### Fix reloading
-	- Disconnect gpiod controllers
-	- Discard state
-	- Load config
+- Tighter integration with mod_portaudio 
+- VAD/VOX

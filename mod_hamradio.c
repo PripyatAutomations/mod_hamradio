@@ -18,8 +18,6 @@
  */
 #include <switch.h>
 #include "mod_hamradio.h"
-#include "config.h"
-
 Globals_t globals;
 
 SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown);
@@ -294,30 +292,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
 //   switch_mutex_lock(globals.mutex);
 
    if (reload == true) {
-      // if gpiochip is mapped, we need to unmap all the lines then the chip
-      if (globals.gpiochip != NULL) {
-         // Unmap the lines for each radio
-         for (int i = 0; i < MAX_RADIOS; i++) {
-            if (globals.Radios[i].gpio_power != NULL) {
-               // Unmap the line
-               gpiod_line_release(globals.Radios[i].gpio_power);
-            }
-
-            if (globals.Radios[i].gpio_ptt != NULL) {
-               // Unmap the line
-               gpiod_line_release(globals.Radios[i].gpio_ptt);
-            }
-
-            if (globals.Radios[i].gpio_squelch != NULL) {
-               // Unmap the line
-               gpiod_line_release(globals.Radios[i].gpio_squelch);
-            }
-         }
-
-         // Unmap the GPIO chip
-         gpiod_chip_close(globals.gpiochip);
-         globals.gpiochip = NULL;
-      }
+      radio_gpio_fini();
 
       // is dictionary existing already? free it if so
       if (globals.cfg != NULL) {
@@ -346,12 +321,15 @@ switch_status_t load_configuration(switch_bool_t reload) {
    for (int radio = 0; radio < globals.radios; radio++) {
       Radio_t *r = &globals.Radios[radio];
 
-      // initialize their libgpiod interfaces
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] Bringing up radio%d\n", radio);
+
+      // initialize it's GPIO interfaces, if any
       radio_gpio_init(radio);
 
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] Bringing up radio%d (GPIO)\n", radio);
+      // Show some userful information in the log
       radio_dump_state_var(radio);
 
+      // Power it up and make it available for use, if enabled
       if (r->enabled)
          radio_enable(radio);
    }
