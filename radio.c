@@ -415,7 +415,7 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
           ((r->talk_start > 0) ? time_to_timestr(now - r->talk_start) : "off"));
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %s\tholdoff:%s\tpenalty:%s\n",
           time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff), time_to_timestr(r->penalty));
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s\t\t\Tpa_outdev: %s\n", r->pa_indev, r->pa_outdev);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s\t\t\tpa_outdev: %s\n", r->pa_indev, r->pa_outdev);
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, " GPIO:  PTT: %d\tPower: %d\tSquelch: %d\n", r->pin_ptt, r->pin_power, r->pin_squelch);
    }
    return SWITCH_STATUS_SUCCESS;
