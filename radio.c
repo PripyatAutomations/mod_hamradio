@@ -89,7 +89,7 @@ int radio_disable(const int radio) {
 RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    Radio_t *r = NULL;
    RadioStatus_t old_status;
-   time_t qso_length = 0;
+   time_t qso_length = 0, now = time(NULL);
    switch_status_t rv = SWITCH_STATUS_SUCCESS;
 
    // Negative values aren't allowed in the struct but can be returned in case of error
@@ -165,24 +165,24 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
            // XXX: Check when last IDed and pause then send a tailing identification
            if (r->talk_start > 0) {
               // record statistics about the QSO length
-              qso_length = time(NULL) - r->talk_start;
+              qso_length = now - r->talk_start;
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was transmitting for %s...\n", radio, time_to_timestr(qso_length));
               // save the total time transmitted
               r->total_tx += qso_length;
            }
            // save last time transmitted
-           r->last_tx = time(NULL);
+           r->last_tx = now;
         }
 
         // If we were receiving, record statistics
         if (r->status == RADIO_RX) {
            if (r->listen_start > 0) {
-              qso_length = time(NULL) - r->listen_start;
+              qso_length = now - r->listen_start;
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was receiving for %s...\n", radio, time_to_timestr(qso_length));
               r->total_rx += qso_length;
            }
            // save last time received
-           r->last_rx = time(NULL);
+           r->last_rx = now;
         }
 
         // Clear PTT before powering on
@@ -205,7 +205,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         if (r->pin_power)
            radio_gpio_power_on(radio);
 
-        r->listen_start = time(NULL);
+        r->listen_start = now;
         break;
      case RADIO_TX:
      case RADIO_TX_DATA:
@@ -218,7 +218,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
 
         // Start timers here for TOT, but don't restart it if we didn't stop TXing...
         if (r->talk_start == 0)
-           r->talk_start = time(NULL);
+           r->talk_start = now;
 
         // if a PTT GPIO is configuredm, raise it now
         if (r->pin_ptt)
@@ -367,6 +367,7 @@ void radio_print_status(switch_stream_handle_t *stream, const int radio) {
 // XXX: This needs to be improved so that it uses stream->write_function(stream, ...) instead of switch_log_printf *IF* coming from api
 int radio_dump_state_var(const int radio, switch_bool_t detailed) {
    Radio_t *r;
+   time_t now = time(NULL);
 
    // try to prevent invalid radios as this is used to index an array
    if (radio < 0 || radio >= globals.max_radios) {
@@ -388,13 +389,28 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
           (r->enabled ? "true" : "false"), radio_get_status_str(radio));
 
    if (detailed) {
+      char tmp1[30], tmp2[30];	// date string buffers
+      const char date_fmt[19] = "%Y-%d-%m %H:%M:%S";
+
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "squelch mode: %d %s\tinband ctcss: %s\n", r->RX_mode,
           (r->squelch_invert ? "(inverted)" : ""), (r->ctcss_inband ? "true" : "false"));
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %lu\t\ttotal_tx: %lu\n", r->total_rx, r->total_tx);
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    last_rx: %lu\t\tlast_tx: %lu\n", r->last_rx, r->last_tx);
+      memset(tmp1, 0, sizeof(tmp1));
+      memset(tmp2, 0, sizeof(tmp2));
+
+      if (r->last_rx > 0)
+         strftime(tmp1, sizeof(tmp1), date_fmt, localtime(&r->last_rx));
+      else
+         sprintf(tmp1, "Never");
+
+      if (r->last_tx > 0)
+         strftime(tmp2, sizeof(tmp2), date_fmt, localtime(&r->last_tx));
+      else
+         sprintf(tmp2, "Never");
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    last_rx: %s\t\tlast_tx: %s\n", tmp1, tmp2);
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    curr_rx: %s\tcurr_tx: %s\n",
-          ((r->listen_start > 0) ? time_to_timestr(time(NULL) - r->listen_start) : "off"),
-          ((r->talk_start > 0) ? time_to_timestr(time(NULL) - r->talk_start) : "off"));
+          ((r->listen_start > 0) ? time_to_timestr(now - r->listen_start) : "off"),
+          ((r->talk_start > 0) ? time_to_timestr(now - r->talk_start) : "off"));
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %s\tholdoff:%s\tpenalty:%s\n",
           time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff), time_to_timestr(r->penalty));
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s\tpa_outdev: %s\n", r->pa_indev, r->pa_outdev);

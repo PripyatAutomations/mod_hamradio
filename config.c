@@ -260,7 +260,7 @@ dict *dconf_load(const char *file) {
            } else {
               r->squelch_invert = false;
            }
-         } else if (strncasecmp(key, "timeout_talk", 12) == 0) {
+         } else if (strncasecmp(key, "timeout_talk", 13) == 0) {
            int new_tot = 0;
            new_tot = timestr_to_time(val, 0);
 
@@ -270,7 +270,7 @@ dict *dconf_load(const char *file) {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[%s] Invalid timeout_talk value '%s' parsing '%s' at %s:%d\n", section, val, buf, file, line);
               warnings++;
            }
-         } else if (strncasecmp(key, "timeout_holdoff", 15) == 0) {
+         } else if (strncasecmp(key, "timeout_holdoff", 16) == 0) {
            int new_holdoff = 0;
            new_holdoff = timestr_to_time(val, 0);
 

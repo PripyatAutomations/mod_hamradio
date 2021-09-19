@@ -13,11 +13,11 @@ printsrc_objs += printable_source.txt printable_source.pdf
 .PHONY: all
 all: $(MODNAME)
  
-$(MODNAME): $(MODOBJS)
+$(MODNAME): $(foreach $(MODOBJS),x,.obj/${x})
 	@echo "[LD] $@"
-	@$(CC) -shared -o $@ $(MODOBJS) $(LDFLAGS)
+	@$(CC) -shared -o obj/$@ $^ $(LDFLAGS)
  
-%.o: %.c
+.obj/%.o: %.c
 	@echo "[CC] $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
  
@@ -32,4 +32,3 @@ install: $(MODNAME)
 
 print:
 	./tools/printsrc *.[ch] > printable_source.txt
-	
