@@ -395,9 +395,10 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "squelch mode: %d %s\tinband ctcss: %s\n", r->RX_mode,
           (r->squelch_invert ? "(inverted)" : ""), (r->ctcss_inband ? "true" : "false"));
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %s\t\ttotal_tx: %s\n", time_to_timestr(r->total_rx), time_to_timestr(r->total_tx));
+
+      // Show time stamps with date for last TX/RX times
       memset(tmp1, 0, sizeof(tmp1));
       memset(tmp2, 0, sizeof(tmp2));
-
       if (r->last_rx > 0)
          strftime(tmp1, sizeof(tmp1), date_fmt, localtime(&r->last_rx));
       else
@@ -408,6 +409,7 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
       else
          sprintf(tmp2, "Never");
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    last_rx: %s\t\tlast_tx: %s\n", tmp1, tmp2);
+ 
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    curr_rx: %s\tcurr_tx: %s\n",
           ((r->listen_start > 0) ? time_to_timestr(now - r->listen_start) : "off"),
           ((r->talk_start > 0) ? time_to_timestr(now - r->talk_start) : "off"));

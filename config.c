@@ -96,8 +96,15 @@ dict *dconf_load(const char *file) {
 
       // Handle configuration sections
       if (strcasecmp(section, "general") == 0) {
-         key = strtok(skip, "= \n");
-         val = strtok(NULL, "= \n");
+         char *sep = strchr(skip, '=');
+
+         if (sep == NULL) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Radio configuration [%s] invalid key '%s' missing separator (=) (parsing %s:%d)\n", section, skip, file, line);
+            continue;
+         }
+         // make sure you free this!
+         key = strndup(skip, (sep - skip));
+         val = strndup(sep + 1, strlen(sep + 1));
 
          // Store value in the dictionary (globals.cfg)
          dict_add(cp, key, val);
@@ -122,13 +129,27 @@ dict *dconf_load(const char *file) {
                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "poll_interval (%d) is too small - using minimum value of 25 (ms)!\n", i);
             }
          }
+
+         // free some memory up
+         free(key);
+         free(val);
       } else if (strcasecmp(section, "conference") == 0) {
-         key = strtok(skip, "= \n");
-         val = strtok(NULL, "= \n");
+         // make sure you free this!
+//         key = strndup(skip, (sep - skip));
+//         val = strndup(sep + 1, strlen(sep + 1));
+         // Conference config parser - XXX: Create a new conference struct and add to list...
+//         free(key);
+//         free(val);
       } else if (strncasecmp(section, "radio", 5) == 0) {
          int radio = -1;
          char *radio_id_s = section + 5;
          Radio_t *r = NULL;
+         char *sep = strchr(skip, '=');
+
+         if (sep == NULL) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Radio configuration [%s] invalid key '%s' missing separator (=) (parsing %s:%d)\n", section, skip, file, line);
+            continue;
+         }
 
          if (radio_id_s != NULL) {
 //            radio = strtoi(radio_id_s, NULL, 0, 10, 0, NULL);
@@ -145,8 +166,10 @@ dict *dconf_load(const char *file) {
             globals.Radios = malloc(sizeof(Radio_t) * globals.max_radios);
 
          r = &globals.Radios[radio];
-         key = strtok(skip, "= \n");
-         val = strtok(NULL, "= \n");
+
+         // make sure you free this!
+         key = strndup(skip, (sep - skip));
+         val = strndup(sep + 1, strlen(sep + 1));
 
 //         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[cfg:radio%d] setting %s - %s. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
 
@@ -271,6 +294,8 @@ dict *dconf_load(const char *file) {
               warnings++;
            }
          }
+         free(key);
+         free(val);
       } else {
          switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Unknown configuration section '%s' parsing '%s' at %s:%d\n", section, buf, file, line);
          warnings++;

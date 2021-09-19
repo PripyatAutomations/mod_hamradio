@@ -12,6 +12,11 @@ int radio_tones_init(void) {
 
 // Play Nokia-encoded tones into the radio
 int radio_send_tones(const int radio, const char *tone) {
+    // Empty ringtones aren't an error but show throw a warning in debug mode
+    if (tone == NULL) {
+       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio_send_tones(%d) called with empty tonestring, ignoring!\n", radio);
+       return SWITCH_STATUS_SUCCESS;
+    }
     return SWITCH_STATUS_SUCCESS;
 }
 
