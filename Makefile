@@ -3,6 +3,7 @@ MODNAME = mod_hamradio.so
 MODOBJS += mod_hamradio.o dict.o config.o radio.o radio_gpio.o radio_rigctl.o tones.o
 MODCFLAGS = -Wall -Werror
 MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod
+real_objs := $(foreach x,${MODOBJS},.obj/${x})
 
 CC = gcc
 CFLAGS = -fPIC -g -ggdb `pkg-config --cflags freeswitch` $(MODCFLAGS) -Wno-unused-variable
@@ -13,17 +14,17 @@ printsrc_objs += printable_source.txt printable_source.pdf
 .PHONY: all
 all: $(MODNAME)
  
-$(MODNAME): $(foreach $(MODOBJS),x,.obj/${x})
+$(MODNAME): ${real_objs}
 	@echo "[LD] $@"
-	@$(CC) -shared -o obj/$@ $^ $(LDFLAGS)
+	$(CC) -shared -o $@ $^ $(LDFLAGS)
  
 .obj/%.o: %.c
 	@echo "[CC] $@"
-	@$(CC) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $<
  
 .PHONY: clean
 clean:
-	rm -f $(MODNAME) $(MODOBJS) ${printsrc_objs}
+	rm -f $(MODNAME) ${real_objs} ${printsrc_objs}
  
 .PHONY: install
 install: $(MODNAME)
