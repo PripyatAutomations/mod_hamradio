@@ -6,6 +6,9 @@ Sorry!! :O At least i saved you finding out the hard way! Come back
 tomorrow!
 ----
 
+Reloading the module may result in a crash. I'm working on debugging that.
+Feel free to cleanup/fix bits of the code, i'm throwing this together in
+whatever scraps of free time I get, as I need it functional in a few weeks.
 
 Sorry for the mess. This is some quick code i threw together in a couple of
 long days trying to get my remote station up and going.
