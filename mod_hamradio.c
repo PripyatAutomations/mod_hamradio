@@ -339,7 +339,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
    }
 
    // Initialize GPIO chip(s)
-   radio_gpiochip_init(dconf_get_str("gpiochip", "gpiochip0"));
+   radio_gpiochip_init(dconf_get_str("gpiochip", NULL));
 
    // step through all the configured radios and initialize their GPIO lines
    for (int radio = 0; radio < globals.max_radios; radio++) {
@@ -389,6 +389,8 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
 
    // Load config and handle reloads
    load_configuration(0);
+
+   // bind configuration reload event to our event handler
    if ((switch_event_bind(modname, SWITCH_EVENT_RELOADXML, NULL, event_handler, NULL) != SWITCH_STATUS_SUCCESS)) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Couldn't bind reloadxml handler!");
    }
@@ -440,6 +442,8 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
    // close all GPIO interfaces
    radio_gpio_fini();
 
+   // XXX: close all rigctl interfaces
+
    // Free some memory
    switch_event_unbind_callback(event_handler);
 
@@ -450,6 +454,13 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
    return SWITCH_STATUS_UNLOAD;
 }
 
+///////////////////////////////////////
+// Here is where out main logic runs //
+///////////////////////////////////////
+// We poll the radio stack periodically (poll_interval setting)
+// and do things based on what we find.
+// We need to be reasonably fast here and try to keep CPU usage
+// responsible...
 SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
    // Wait for the main process to be ready
    while (!globals.alive)
@@ -457,9 +468,12 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
 
    // As long as we aren't shutting down, scan the radios
    while (globals.alive) {
+      time_t now = time(NULL);
+
       for (int radio = 0; radio < globals.max_radios; radio++) {
-         int sqval = 0;
          Radio_t *r = &globals.Radios[radio];
+         int sqval = 0;
+         switch_bool_t squelch_state = false;
 
          // Another second has passed, reduce penalty time on this radio
          if (r->penalty > 0) {
@@ -476,7 +490,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
 
          // Check the GPIO squelch line here
          if (r->gpio_squelch != NULL) {
-            switch_bool_t squelch_state = false;
+            switch_bool_t gpio_squelch_state = false;
             sqval = radio_gpio_read_squelch(radio);
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d read squelch val = %d\n", radio, sqval);
 
@@ -486,16 +500,32 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
             }
 
             // There is received activity
-            if (squelch_state == true) {
+            if (gpio_squelch_state == true) {
                // Are we in automatic control mode? If not, ignore the input
                if ((r->RX_mode == SQUELCH_GPIO)) {
                   // XXX: Find all conferences this radio is in and raise it's RXing flag
                   // radio_confs_find_byradio(radio)
+                  squelch_state = true;
                }
             }
          }
 
-         // XXX: Check VOX squelch status
+         if (r->RX_mode == SQUELCH_VOX) {
+            // XXX: Check squelch PTT status
+            // if (vad_is_voice(radio)) {
+            //    squelch_state = true;
+         }
+ 
+         // If any of the squelch inputs were configured and came up, set RX flags
+         if (squelch_state == true) {
+            // Set receiving state on
+            r->status = RADIO_RX;
+            // Store last received time
+            r->last_rx = now;
+         } else if ((r->status == RADIO_RX) && (squelch_state == false)) {
+            r->status = RADIO_IDLE;
+            r->last_rx = now;
+         }
 
          // Handle tasks specific to the state of the selected radio (RX, TX, TXDATA)
          if (r->status == RADIO_RX) {
@@ -504,8 +534,10 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
             // is a timeout timer set on this channel?
             if (r->timeout_talk > 0) {
                // Has the timer expired?
-               if (time(NULL) >= (r->talk_start + r->timeout_talk)) {
+               if (now >= (r->talk_start + r->timeout_talk)) {
                   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "radio%d ending transmission (TOT expired: %s, adding %s penalty)\n", radio, time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff));
+
+                  // XXX: send ident here, if needed...
 
                   // Apply a delay before allowing TX again
                   r->penalty += r->timeout_holdoff;
@@ -513,14 +545,20 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
                   // Turn the PTT off
                   radio_ptt_off(radio);
                }
+
+               // store last TX as now
+               r->last_tx = now;
             }
          } else if (r->status == RADIO_TX_DATA) {
-            // XXX: Handle modem tasks here
+               // XXX: Implement duty cycle management!
+               // XXX: Handle modem tasks here
+               // store last TX as now
+               r->last_tx = now;
          }
 
          // XXX: Check ident timeouts
       }
-      // Sleep for about a second then repeat!
+// XXX: Does this even need to be here? disabling to see...
 //      usleep(globals.poll_interval);
       switch_cond_next();
    }
