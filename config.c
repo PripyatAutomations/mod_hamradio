@@ -74,6 +74,8 @@ dict *dconf_load(const char *file) {
 
          section = strndup(skip + 1, strlen(skip) - 2);
          switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
+
+         // Here we should initialize anything needed by a section
          if (strcasecmp(section, "tones")) {
             // Initialize the tone playback system
             radio_tones_init();
