@@ -39,7 +39,8 @@ typedef enum {
 // Global data
 struct Globals {
    int alive;				// are we shutting down?
-   int max_radios;			// Highest radio # configured
+   int max_radios;			// Highest radio # allowed to be configured
+   int max_conferences;			// Maximum allowed concurrent conferences
    struct Radio *Radios;		// radio structures
    switch_mutex_t *mutex;
    dict *cfg;				// configuration from .conf

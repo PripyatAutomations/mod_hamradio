@@ -1,3 +1,12 @@
+****
+ Right now (9/19) there's a bug in the configuration stuff that mucks up
+all the TOT and holdoff bits. I'll try to get it sorted out tomorrow.
+
+Sorry!! :O At least i saved you finding out the hard way! Come back
+tomorrow!
+----
+
+
 Sorry for the mess. This is some quick code i threw together in a couple of
 long days trying to get my remote station up and going.
 

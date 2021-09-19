@@ -73,7 +73,7 @@ dict *dconf_load(const char *file) {
             free(section);
 
          section = strndup(skip + 1, strlen(skip) - 2);
-//         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
          if (strncasecmp(section, "tones", 5)) {
             // Initialize the tone playback system
             radio_tones_init();
@@ -120,7 +120,10 @@ dict *dconf_load(const char *file) {
             if ((i = atoi(val)) > 0)
                globals.max_radios = i;
          }
-
+         if (strncasecmp(key, "max_conferences", 16) == 0) {
+            if ((i = atoi(val)) > 0)
+               globals.max_conferences = i;
+         }
       } else if (strncasecmp(section, "conference", 10) == 0) {
          key = strtok(skip, "= \n");
          val = strtok(NULL, "= \n");

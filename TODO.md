@@ -1,3 +1,4 @@
+**** Make radios dynamically added and removed, to get rid of some bugs ****
 - Clean up module unloading/reloading so they work without spewing a bunch
   of pointless error messages...
 - Tighter integration with mod_portaudio 
