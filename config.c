@@ -124,11 +124,12 @@ dict *dconf_load(const char *file) {
             if ((i = atoi(val)) > 0)
                globals.max_conferences = i;
          } else if (strncasecmp(key, "poll_interval", 14) == 0) {
-            if ((i = atoi(val)) >= 100) {
+            // Minimum poll time is 25ms
+            if ((i = atoi(val)) >= 25) {
                globals.poll_interval = i;
             } else {
-               globals.poll_interval = 100;
-               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "poll_interval (%d) is too small - using minimum value of 100 (ms)!\n", i);
+               globals.poll_interval = 25;
+               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "poll_interval (%d) is too small - using minimum value of 25 (ms)!\n", i);
             }
          }
       } else if (strncasecmp(section, "conference", 10) == 0) {

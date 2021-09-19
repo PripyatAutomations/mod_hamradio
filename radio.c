@@ -81,9 +81,11 @@ int radio_disable(const int radio) {
    return RADIO_OFF;
 }
 
-/////////////
-// XXX: This belongs split up and most of the current code into radio_gpio
-// Set the radio combinead (power and ptt) state in one call
+///////////////////////////////////////////////////////////
+// Main function for controlling radio state             //
+// - Use this interface to ensure TOT, idents, etc work! //
+// All of the radio_*_[on|off] functions call into here. //
+///////////////////////////////////////////////////////////
 RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    Radio_t *r = NULL;
    RadioStatus_t old_status;

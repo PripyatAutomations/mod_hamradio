@@ -187,3 +187,19 @@ switch_status_t radio_gpio_power_off(int radio) {
    gpiod_line_set_value(r->gpio_power, 0);
    return SWITCH_STATUS_SUCCESS;
 }
+
+int radio_gpio_read_squelch(int radio) {
+   Radio_t *r;
+   int val = 0;
+
+   if (radio < 0 || radio > globals.max_radios)
+      return -1;
+
+   r = &globals.Radios[radio];
+
+   if (r == NULL || r->gpio_squelch == NULL)
+      return -1;
+
+   val = gpiod_line_get_value(r->gpio_squelch);
+   return val;
+}

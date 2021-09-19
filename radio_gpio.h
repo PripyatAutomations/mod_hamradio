@@ -27,4 +27,7 @@ extern switch_status_t radio_gpio_power_on(int radio);
 
 // Power off
 extern switch_status_t radio_gpio_power_off(int radio);
+
+// Read squelch input
+extern int radio_gpio_read_squelch(int radio);
 #endif	// !defined(RADIO_GPIO_H)

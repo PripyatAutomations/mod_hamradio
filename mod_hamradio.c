@@ -329,6 +329,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
 
    // Zero out the configuration structure, such as radio data
    memset(&globals, 0, sizeof(globals));
+   // Set a default poll interval early...
    globals.poll_interval = 100;
 
    // load the dictionary configuration
@@ -436,6 +437,9 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
       globals.Radios[radio].enabled = 0;
    }
 
+   // close all GPIO interfaces
+   radio_gpio_fini();
+
    // Free some memory
    switch_event_unbind_callback(event_handler);
 
@@ -454,6 +458,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
    // As long as we aren't shutting down, scan the radios
    while (globals.alive) {
       for (int radio = 0; radio < globals.max_radios; radio++) {
+         int sqval = 0;
          Radio_t *r = &globals.Radios[radio];
 
          // Another second has passed, reduce penalty time on this radio
@@ -463,10 +468,36 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
             // penalty expired
             if (r->penalty == 0) {
                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d penalty cleared\n", radio);
-               // Optionally Play a status tone to indicate penalty over
+
+               // Optionally Play a status tone to indicate penalty time over
                radio_send_tones(radio, "penalty_clear");
             }
          }
+
+         // Check the GPIO squelch line here
+         if (r->gpio_squelch != NULL) {
+            switch_bool_t squelch_state = false;
+            sqval = radio_gpio_read_squelch(radio);
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d read squelch val = %d\n", radio, sqval);
+
+            // Handle inverting the signal, if needed for this radio
+            if (r->squelch_invert) {
+               // XXX
+            }
+
+            // There is received activity
+            if (squelch_state == true) {
+               // Are we in automatic control mode? If not, ignore the input
+               if ((r->RX_mode == SQUELCH_GPIO)) {
+                  // XXX: Find all conferences this radio is in and raise it's RXing flag
+                  // radio_confs_find_byradio(radio)
+               }
+            }
+         }
+
+         // XXX: Check VOX squelch status
+
+         // Handle tasks specific to the state of the selected radio (RX, TX, TXDATA)
          if (r->status == RADIO_RX) {
             // Here we should do receive radio stuff
          } else if (r->status == RADIO_TX) {
@@ -475,17 +506,22 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
                // Has the timer expired?
                if (time(NULL) >= (r->talk_start + r->timeout_talk)) {
                   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "radio%d ending transmission (TOT expired: %s, adding %s penalty)\n", radio, time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff));
+
                   // Apply a delay before allowing TX again
                   r->penalty += r->timeout_holdoff;
+
+                  // Turn the PTT off
                   radio_ptt_off(radio);
                }
             }
+         } else if (r->status == RADIO_TX_DATA) {
+            // XXX: Handle modem tasks here
          }
 
          // XXX: Check ident timeouts
       }
       // Sleep for about a second then repeat!
-      usleep(globals.poll_interval);
+//      usleep(globals.poll_interval);
       switch_cond_next();
    }
    return SWITCH_STATUS_TERM;
