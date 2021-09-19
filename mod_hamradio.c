@@ -537,8 +537,6 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
                if (now >= (r->talk_start + r->timeout_talk)) {
                   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "radio%d ending transmission (TOT expired: %s, adding %s penalty)\n", radio, time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff));
 
-                  // XXX: send ident here, if needed...
-
                   // Apply a delay before allowing TX again
                   r->penalty += r->timeout_holdoff;
 
