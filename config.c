@@ -74,21 +74,11 @@ dict *dconf_load(const char *file) {
 
          section = strndup(skip + 1, strlen(skip) - 2);
          switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
-         if (strncasecmp(section, "tones", 5)) {
+         if (strcasecmp(section, "tones")) {
             // Initialize the tone playback system
             radio_tones_init();
          }
          continue;
-      } else if (*skip == '@') {			// preprocessor
-         if (strncasecmp(skip + 1, "if ", 3) == 0) {
-            /* XXX: finish this */
-         } else if (strncasecmp(skip + 1, "endif", 5) == 0) {
-            /* XXX: finish this */
-         } else if (strncasecmp(skip + 1, "else ", 5) == 0) {
-            /* XXX: finish this */
-         } else if (strncasecmp(skip + 1, "include ", 8) == 0) {
-            /* XXX: Add includes (non-recursive?) */
-         }
       }
 
       // Configuration data *MUST* be inside of a section, no exceptions.
@@ -99,13 +89,13 @@ dict *dconf_load(const char *file) {
       }
 
       // @END exits a section early
-      if (strncasecmp(skip, "@END", 4) == 0) {
+      if (strcasecmp(skip, "@END") == 0) {
          section = NULL;
          continue;
       }
 
       // Handle configuration sections
-      if (strncasecmp(section, "general", 7) == 0) {
+      if (strcasecmp(section, "general") == 0) {
          key = strtok(skip, "= \n");
          val = strtok(NULL, "= \n");
 
@@ -116,14 +106,14 @@ dict *dconf_load(const char *file) {
          int i;
 
          // XXX: This needs to be improved in a way that will reflect changes to the dict contents via api....
-         if (strncasecmp(key, "max_radios", 9) == 0) {
+         if (strcasecmp(key, "max_radios") == 0) {
             // Define max radios
             if ((i = atoi(val)) > 0)
                globals.max_radios = i;
-         } else if (strncasecmp(key, "max_conferences", 16) == 0) {
+         } else if (strcasecmp(key, "max_conferences") == 0) {
             if ((i = atoi(val)) > 0)
                globals.max_conferences = i;
-         } else if (strncasecmp(key, "poll_interval", 14) == 0) {
+         } else if (strcasecmp(key, "poll_interval") == 0) {
             // Minimum poll time is 25ms
             if ((i = atoi(val)) >= 25) {
                globals.poll_interval = i;
@@ -132,7 +122,7 @@ dict *dconf_load(const char *file) {
                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "poll_interval (%d) is too small - using minimum value of 25 (ms)!\n", i);
             }
          }
-      } else if (strncasecmp(section, "conference", 10) == 0) {
+      } else if (strcasecmp(section, "conference") == 0) {
          key = strtok(skip, "= \n");
          val = strtok(NULL, "= \n");
       } else if (strncasecmp(section, "radio", 5) == 0) {
@@ -160,13 +150,13 @@ dict *dconf_load(const char *file) {
 
 //         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[cfg:radio%d] setting %s - %s. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
 
-         if (strncasecmp(key, "enabled", 7) == 0) {
-           if (!strncasecmp(val, "true", 4) || !strncasecmp(val, "yes", 3) || !strncasecmp(val, "on", 2)) {
+         if (strcasecmp(key, "enabled") == 0) {
+           if (!strcasecmp(val, "true") || !strcasecmp(val, "yes") || !strcasecmp(val, "on")) {
               r->enabled = true;
            } else {
               r->enabled = false;
            }
-         } else if (strncasecmp(key, "description", 11) == 0) {
+         } else if (strcasecmp(key, "description") == 0) {
            char *qp = NULL, *ep = NULL;
 
            memset(r->description, 0, sizeof(r->description));
@@ -194,13 +184,13 @@ dict *dconf_load(const char *file) {
                  memcpy(r->description, val, sizeof(r->description) - 1);
               }
            }
-         } else if (strncasecmp(key, "ctcss_inband", 12) == 0) {
-           if (!strncasecmp(val, "true", 4) || !strncasecmp(val, "yes", 3) || !strncasecmp(val, "on", 2)) {
+         } else if (strcasecmp(key, "ctcss_inband") == 0) {
+           if (!strcasecmp(val, "true") || !strcasecmp(val, "yes") || !strcasecmp(val, "on")) {
               r->ctcss_inband = true;
            } else {
               r->ctcss_inband = false;
            }
-         } else if (strncasecmp(key, "gpio_power", 10) == 0) {
+         } else if (strcasecmp(key, "gpio_power") == 0) {
            int ival = atoi(val);
 
            // Some people don't use power control, -1 is a valid setting to indicate 'disabled'...
@@ -212,7 +202,7 @@ dict *dconf_load(const char *file) {
            } else { 
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
            }
-         } else if (strncasecmp(key, "gpio_ptt", 8) == 0) {
+         } else if (strcasecmp(key, "gpio_ptt") == 0) {
            int ival = atoi(val);
 
            if (ival == -1)
@@ -224,7 +214,7 @@ dict *dconf_load(const char *file) {
            } else { 
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
            }
-         } else if (strncasecmp(key, "gpio_squelch", 12) == 0) {
+         } else if (strcasecmp(key, "gpio_squelch") == 0) {
            int ival = atoi(val);
 
            // Some devices don't have squelch output, -1 is a valid setting to indicate 'disabled'...
@@ -235,32 +225,32 @@ dict *dconf_load(const char *file) {
            } else { 
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
            }
-         } else if (strncasecmp(key, "pa_indev", 8) == 0) {
+         } else if (strcasecmp(key, "pa_indev") == 0) {
            if (val != NULL) {
               // Zero out the buffer then copy our setting in
               memset(r->pa_indev, 0, sizeof(r->pa_indev));
               memcpy(r->pa_indev, val, (strlen(val) > (PATH_MAX - 1)) ? strlen(val) : PATH_MAX - 1);
            }
-         } else if (strncasecmp(key, "pa_outdev", 9) == 0) {
+         } else if (strcasecmp(key, "pa_outdev") == 0) {
            if (val != NULL) {
               // Zero out the buffer then copy our setting in
               memset(r->pa_outdev, 0, sizeof(r->pa_outdev));
               memcpy(r->pa_outdev, val, (strlen(val) > (PATH_MAX - 1)) ? strlen(val) : PATH_MAX - 1);
            }
-         } else if (strncasecmp(key, "squelch_mode", 12) == 0) {
-           if (!strncasecmp(val, "gpio", 4) == 0) {
+         } else if (strcasecmp(key, "squelch_mode") == 0) {
+           if (!strcasecmp(val, "gpio") == 0) {
               r->RX_mode = SQUELCH_GPIO;
-           } else if (!strncasecmp(val, "vox", 3) == 0) {
+           } else if (!strcasecmp(val, "vox") == 0) {
               r->RX_mode = SQUELCH_VOX;
            } else
               r->RX_mode = SQUELCH_MANUAL;
-         } else if (strncasecmp(key, "squelch_invert", 14) == 0) {
-           if (!strncasecmp(val, "true", 4) || !strncasecmp(val, "yes", 3) || !strncasecmp(val, "on", 2)) {
+         } else if (strcasecmp(key, "squelch_invert") == 0) {
+           if (!strcasecmp(val, "true") || !strcasecmp(val, "yes") || !strcasecmp(val, "on")) {
               r->squelch_invert = true;
            } else {
               r->squelch_invert = false;
            }
-         } else if (strncasecmp(key, "timeout_talk", 13) == 0) {
+         } else if (strcasecmp(key, "timeout_talk") == 0) {
            int new_tot = 0;
            new_tot = timestr_to_time(val, 0);
 
@@ -270,7 +260,7 @@ dict *dconf_load(const char *file) {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[%s] Invalid timeout_talk value '%s' parsing '%s' at %s:%d\n", section, val, buf, file, line);
               warnings++;
            }
-         } else if (strncasecmp(key, "timeout_holdoff", 16) == 0) {
+         } else if (strcasecmp(key, "timeout_holdoff") == 0) {
            int new_holdoff = 0;
            new_holdoff = timestr_to_time(val, 0);
 
