@@ -523,11 +523,11 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
          // If any of the squelch inputs were configured and came up, set RX flags
          if (squelch_state == true) {
             // Set receiving state on
-            r->status = RADIO_RX;
+            radio_set_state(radio, RADIO_RX);
             // Store last received time
             r->last_rx = now;
          } else if ((r->status == RADIO_RX) && (squelch_state == false)) {
-            r->status = RADIO_IDLE;
+            radio_set_state(radio, RADIO_IDLE);
             r->last_rx = now;
          }
 

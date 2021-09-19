@@ -35,7 +35,7 @@ struct Radio {
    // configuration //
    ///////////////////
    int		enabled;		// Is channel enabled?
-   char		description[160];	// Describe the interface
+   char		description[250];	// Describe the interface
    RadioRXMode_t RX_mode;		// How do we decide this radio is hearing something that should be relayed?
    time_t	timeout_talk;		// How long do we allow someone to talk before stopping TX?
    time_t	timeout_holdoff;	// How long do we punish triggering the TOT?
