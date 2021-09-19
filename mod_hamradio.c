@@ -329,6 +329,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
 
    // Zero out the configuration structure, such as radio data
    memset(&globals, 0, sizeof(globals));
+   globals.poll_interval = 100;
 
    // load the dictionary configuration
    if (!(globals.cfg = dconf_load(HAMRADIO_CONF))) {
@@ -446,6 +447,11 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
 }
 
 SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
+   // Wait for the main process to be ready
+   while (!globals.alive)
+      sleep(1);
+
+   // As long as we aren't shutting down, scan the radios
    while (globals.alive) {
       for (int radio = 0; radio < globals.max_radios; radio++) {
          Radio_t *r = &globals.Radios[radio];
@@ -479,7 +485,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
          // XXX: Check ident timeouts
       }
       // Sleep for about a second then repeat!
-      sleep(1);
+      usleep(globals.poll_interval);
       switch_cond_next();
    }
    return SWITCH_STATUS_TERM;

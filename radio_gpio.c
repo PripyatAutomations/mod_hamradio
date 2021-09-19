@@ -32,6 +32,7 @@ int radio_gpio_init(const int radio) {
    if (radio < 0 || radio >= globals.max_radios) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init: (%d) is not a valid radio id\n", radio);
       err_invalid_radio(radio);
+      return SWITCH_STATUS_FALSE;
    }
 
    // Shorthand
@@ -43,29 +44,36 @@ int radio_gpio_init(const int radio) {
    }
 
    // Attach the power GPIO line to our interface
-   if ((r->gpio_power = gpiod_chip_get_line(globals.gpiochip, r->pin_power)) == NULL) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d)/power failed!\n", radio);
-      return SWITCH_STATUS_FALSE;
+   if (r->pin_power > 0) {
+      if ((r->gpio_power = gpiod_chip_get_line(globals.gpiochip, r->pin_power)) == NULL) {
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d)/power failed!\n", radio);
+         return SWITCH_STATUS_FALSE;
+      } else {
+         gpiod_line_request_output(r->gpio_power, "power", 0);
+      }
    }
-   gpiod_line_request_output(r->gpio_power, "power", 0);
 
    // Attach the ptt GPIO line to our interface
-   if ((r->gpio_ptt = gpiod_chip_get_line(globals.gpiochip, r->pin_ptt)) == NULL) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d)/ptt failed!\n", radio);
-      return SWITCH_STATUS_FALSE;
-   }
-   gpiod_line_request_output(r->gpio_ptt, "ptt", 0);
-
-   if (r->RX_mode == SQUELCH_GPIO) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d initializing GPIO squelch input\n", radio);
-
-      // connect to the GPIO line
-      if ((r->gpio_squelch = gpiod_chip_get_line(globals.gpiochip, r->pin_squelch)) == NULL) {
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d)/squelch failed!\n", radio);
+   if (r->pin_ptt > 0) {
+      if ((r->gpio_ptt = gpiod_chip_get_line(globals.gpiochip, r->pin_ptt)) == NULL) {
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d)/ptt failed!\n", radio);
          return SWITCH_STATUS_FALSE;
       }
-      // Set pin mode to INPUT
-      gpiod_line_request_input(r->gpio_squelch, "squelch");
+      gpiod_line_request_output(r->gpio_ptt, "ptt", 0);
+   }
+
+   if (r->pin_squelch > 0) {
+      if (r->RX_mode == SQUELCH_GPIO) {
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d initializing GPIO squelch input\n", radio);
+
+         // connect to the GPIO line
+         if ((r->gpio_squelch = gpiod_chip_get_line(globals.gpiochip, r->pin_squelch)) == NULL) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d)/squelch failed!\n", radio);
+            return SWITCH_STATUS_FALSE;
+         }
+         // Set pin mode to INPUT
+         gpiod_line_request_input(r->gpio_squelch, "squelch");
+      }
    }
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[gpio] Attached GPIOs for radio%d: power=%p ptt=%p squelch=%p\n", radio,
                      r->gpio_power, r->gpio_ptt, r->gpio_squelch);

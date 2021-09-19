@@ -115,14 +115,21 @@ dict *dconf_load(const char *file) {
          // Here we scan the dict for changed configurations that need refreshed in the globals struct (stuff that doesnt change except at reload but is polled often)
          int i;
 
+         // XXX: This needs to be improved in a way that will reflect changes to the dict contents via api....
          if (strncasecmp(key, "max_radios", 9) == 0) {
             // Define max radios
             if ((i = atoi(val)) > 0)
                globals.max_radios = i;
-         }
-         if (strncasecmp(key, "max_conferences", 16) == 0) {
+         } else if (strncasecmp(key, "max_conferences", 16) == 0) {
             if ((i = atoi(val)) > 0)
                globals.max_conferences = i;
+         } else if (strncasecmp(key, "poll_interval", 14) == 0) {
+            if ((i = atoi(val)) >= 100) {
+               globals.poll_interval = i;
+            } else {
+               globals.poll_interval = 100;
+               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "poll_interval (%d) is too small - using minimum value of 100 (ms)!\n", i);
+            }
          }
       } else if (strncasecmp(section, "conference", 10) == 0) {
          key = strtok(skip, "= \n");
