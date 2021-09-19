@@ -245,7 +245,7 @@ dict *dconf_load(const char *file) {
            // Some devices don't have squelch output, -1 is a valid setting to indicate 'disabled'...
            if (ival == -1)
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[cfg:radio%d] gpio squlech input disabled.\n", radio);
-           if (ival >= -1 && ival <= MAX_GPIO) {
+           } else if (ival >= -1 && ival <= MAX_GPIO) {
               r->pin_squelch = ival;
            } else { 
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
