@@ -98,8 +98,8 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
       return RADIO_ERROR;
    }
 
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] radio_set_state(%s) called for radio%d\n", radio_status_msgs[val], radio);
-   // try to prevent invalid radios as this is used to index an array
+//   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio_set_state(%s) called for radio%d\n", radio_status_msgs[val], radio);
+
    if (radio < 0 || radio >= globals.max_radios) {
       err_invalid_radio(radio);
       return RADIO_ERROR;
@@ -136,7 +136,9 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
 
    // What status has been requested?
    switch (val) {
-     // Catch errors
+     //////////////////////
+     // Error conditions //
+     //////////////////////
      case RADIO_BLOCKED:
         // This is an error - blocked state is decided by the value of (r->talk_start + r->timer_talk) and whether it has passed or not...
         break;
@@ -146,6 +148,9 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
      case RADIO_DISABLED:
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] set_state() Ignoring state change for radio%d because it is disabled.\n", radio);
         break;
+     ////////////////////////
+     // Valid radio states //
+     ////////////////////////
      case RADIO_OFF:
         // Clear PTT
         if (r->pin_ptt)
