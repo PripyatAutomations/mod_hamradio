@@ -112,7 +112,7 @@ return 1;
 
 // User has asked us to operate on an invalid radio
 static inline void err_invalid_radio(int radio) {
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "* ERROR - radio%d requested, but system only supports %d radios!\n", radio, dconf_get_int("radios", 8));
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "* ERROR - radio%d requested, but system only supports %d radios!\n", radio, dconf_get_int("max_radios", 8));
 }
 
 #endif	// !defined(__RADIO_H)
