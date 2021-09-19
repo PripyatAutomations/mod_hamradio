@@ -394,7 +394,7 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
 
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "squelch mode: %d %s\tinband ctcss: %s\n", r->RX_mode,
           (r->squelch_invert ? "(inverted)" : ""), (r->ctcss_inband ? "true" : "false"));
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %lu\t\ttotal_tx: %lu\n", r->total_rx, r->total_tx);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %s\t\ttotal_tx: %s\n", time_to_timestr(r->total_rx), time_to_timestr(r->total_tx));
       memset(tmp1, 0, sizeof(tmp1));
       memset(tmp2, 0, sizeof(tmp2));
 

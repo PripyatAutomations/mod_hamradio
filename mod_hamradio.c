@@ -341,11 +341,11 @@ switch_status_t load_configuration(switch_bool_t reload) {
    // Initialize GPIO chip(s)
    radio_gpiochip_init(dconf_get_str("gpiochip", NULL));
 
-   // step through all the configured radios and initialize their GPIO lines
+   // step through all the configured radios and initialize them
    for (int radio = 0; radio < globals.max_radios; radio++) {
       Radio_t *r = &globals.Radios[radio];
 
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] Bringing up radio%d\n", radio);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Bringing up interface radio%d\n", radio);
 
       // initialize it's GPIO interfaces, if any
       radio_gpio_init(radio);
@@ -356,6 +356,8 @@ switch_status_t load_configuration(switch_bool_t reload) {
       // Power it up and make it available for use, if enabled
       if (r->enabled)
          radio_enable(radio);
+
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Interface radio%d successfully brought up.\n", radio);
    }
 
 //   switch_mutex_unlock(globals.mutex);
