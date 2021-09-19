@@ -191,11 +191,11 @@ dict *dconf_load(const char *file) {
                  // XXX: abort loading
               } else { // String is valid, copy it
                 if ((ep - qp) < sizeof(r->description)) {
-                   memcpy(r->description, qp, (ep - qp));
+                   memcpy(r->description, qp + 1, (ep - qp) - 2);
                 } else {
                    // cry that string is too big and truncate it...
                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio%d] description too long (%lu bytes) and was truncated to %lu bytes!\n", radio, strlen(val), sizeof(r->description));
-                   memcpy(r->description, qp, sizeof(r->description) - 1);
+                   memcpy(r->description, qp + 1, sizeof(r->description) - 1);
                 }
               }
            } else { // Not quoted
@@ -278,6 +278,7 @@ dict *dconf_load(const char *file) {
            new_tot = timestr_to_time(val, 0);
 
            if (new_tot > 0) {
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[%s] Set timeout_talk to '%d'\n", section, new_tot);
               r->timeout_talk = new_tot;
            } else {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[%s] Invalid timeout_talk value '%s' parsing '%s' at %s:%d\n", section, val, buf, file, line);
@@ -288,6 +289,7 @@ dict *dconf_load(const char *file) {
            new_holdoff = timestr_to_time(val, 0);
 
            if (new_holdoff > 0) {
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[%s] Set timeout_holdoff to '%d'\n", section, new_holdoff);
               r->timeout_holdoff = new_holdoff;
            } else {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[%s] Invalid timeout_penalty value '%s' parsing '%s' at %s:%d\n", section, val, buf, file, line);

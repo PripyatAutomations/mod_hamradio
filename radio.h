@@ -37,8 +37,8 @@ struct Radio {
    int		enabled;		// Is channel enabled?
    char		description[160];	// Describe the interface
    RadioRXMode_t RX_mode;		// How do we decide this radio is hearing something that should be relayed?
-   int		timeout_talk;		// How long do we allow someone to talk before stopping TX?
-   int		timeout_holdoff;	// How long do we punish triggering the TOT?
+   time_t	timeout_talk;		// How long do we allow someone to talk before stopping TX?
+   time_t	timeout_holdoff;	// How long do we punish triggering the TOT?
    int 		ctcss_inband;		// Does radio pass CTCSS tones?
    int 		squelch_invert;		// Is squelch inpout inverted?
 

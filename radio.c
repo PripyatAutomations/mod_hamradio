@@ -385,16 +385,16 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO,    "* radio%d: %s\n", radio, r->description);
      /*(r->description ? r->description : "")); */
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO,    "    enabled: %s\tstatus: %s\n",
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO,    "    enabled: %s\t\t\tstatus: %s\n",
           (r->enabled ? "true" : "false"), radio_get_status_str(radio));
 
    if (detailed) {
       char tmp1[30], tmp2[30];	// date string buffers
       const char date_fmt[19] = "%Y-%d-%m %H:%M:%S";
 
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "squelch mode: %d %s\tinband ctcss: %s\n", r->RX_mode,
-          (r->squelch_invert ? "(inverted)" : ""), (r->ctcss_inband ? "true" : "false"));
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %s\t\ttotal_tx: %s\n", time_to_timestr(r->total_rx), time_to_timestr(r->total_tx));
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   sq. mode: %d %s\t\tinband ctcss: %s\n", r->RX_mode,
+          (r->squelch_invert ? "(invert)" : ""), (r->ctcss_inband ? "true" : "false"));
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %s\t\t\ttotal_tx: %s\n", time_to_timestr(r->total_rx), time_to_timestr(r->total_tx));
 
       // Show time stamps with date for last TX/RX times
       memset(tmp1, 0, sizeof(tmp1));
@@ -410,12 +410,12 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
          sprintf(tmp2, "Never");
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    last_rx: %s\t\tlast_tx: %s\n", tmp1, tmp2);
  
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    curr_rx: %s\tcurr_tx: %s\n",
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    curr_rx: %s\t\tcurr_tx: %s\n",
           ((r->listen_start > 0) ? time_to_timestr(now - r->listen_start) : "off"),
           ((r->talk_start > 0) ? time_to_timestr(now - r->talk_start) : "off"));
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %s\tholdoff:%s\tpenalty:%s\n",
           time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff), time_to_timestr(r->penalty));
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s\tpa_outdev: %s\n", r->pa_indev, r->pa_outdev);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s\t\t\Tpa_outdev: %s\n", r->pa_indev, r->pa_outdev);
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, " GPIO:  PTT: %d\tPower: %d\tSquelch: %d\n", r->pin_ptt, r->pin_power, r->pin_squelch);
    }
    return SWITCH_STATUS_SUCCESS;
