@@ -68,8 +68,16 @@ dict *dconf_load(const char *file) {
            *skip == '#' || *skip == ';')
          continue;
       else if (*skip == '[' && *end == ']') {		// section
+         // plug a memory leak
+         if (section != NULL)
+            free(section);
+
          section = strndup(skip + 1, strlen(skip) - 2);
 //         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
+         if (strncasecmp(section, "tones", 5)) {
+            // Initialize the tone playback system
+            radio_tones_init();
+         }
          continue;
       } else if (*skip == '@') {			// preprocessor
          if (strncasecmp(skip + 1, "if ", 3) == 0) {
@@ -103,6 +111,16 @@ dict *dconf_load(const char *file) {
 
          // Store value in the dictionary (globals.cfg)
          dict_add(cp, key, val);
+
+         // Here we scan the dict for changed configurations that need refreshed in the globals struct (stuff that doesnt change except at reload but is polled often)
+         int i;
+
+         if (strncasecmp(key, "max_radios", 9) == 0) {
+            // Define max radios
+            if ((i = atoi(val)) > 0)
+               globals.max_radios = i;
+         }
+
       } else if (strncasecmp(section, "conference", 10) == 0) {
          key = strtok(skip, "= \n");
          val = strtok(NULL, "= \n");
@@ -116,14 +134,14 @@ dict *dconf_load(const char *file) {
             radio = atoi(radio_id_s);
          }
 
-         if (radio < 0 || radio > MAX_RADIOS) {
-           switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Radio configuration [%s] ignored - we only support %d MAX_RADIOS. (parsing '%s' at %s:%d)\n", section, MAX_RADIOS, buf, file, line);
+         if (radio < 0 || radio > globals.max_radios) {
+           switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Radio configuration [%s] section ignored since general:radios is only set to %d! (parsing %s:%d)\n", section, globals.max_radios, file, line);
            continue;
          }
 
-         // Update 'max_radios' in globals
-         if (radio > globals.max_radios)
-            globals.max_radios = radio;
+         // is this the first radio definition? if so, we must allocate the memory
+         if (globals.Radios == NULL)
+            globals.Radios = malloc(sizeof(Radio_t) * globals.max_radios);
 
          r = &globals.Radios[radio];
          key = strtok(skip, "= \n");
@@ -136,6 +154,34 @@ dict *dconf_load(const char *file) {
               r->enabled = true;
            } else {
               r->enabled = false;
+           }
+         } else if (strncasecmp(key, "description", 11) == 0) {
+           char *qp = NULL, *ep = NULL;
+
+           memset(r->description, 0, sizeof(r->description));
+           if ((qp = strchr(val, '"')) != NULL) {
+              // If we can't find a second ", it is an error...
+              if ((ep = strrchr(qp, '"')) == NULL) {
+                 // cry about missing end-quote
+                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[config] Missing end-quote while trying to parse string in config at %s:%d\n", file, line);
+                 // XXX: abort loading
+              } else { // String is valid, copy it
+                if ((ep - qp) < sizeof(r->description)) {
+                   memcpy(r->description, qp, (ep - qp));
+                } else {
+                   // cry that string is too big and truncate it...
+                   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio%d] description too long (%lu bytes) and was truncated to %lu bytes!\n", radio, strlen(val), sizeof(r->description));
+                   memcpy(r->description, qp, sizeof(r->description) - 1);
+                }
+              }
+           } else { // Not quoted
+              if (strlen(val) <= sizeof(r->description) - 1) {
+                 memcpy(r->description, val, strlen(val));
+              } else {
+                 // cry that the string is too big and truncate it...
+                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio%d] description too long (%lu bytes) and was truncated to %lu bytes!\n", radio, strlen(val), sizeof(r->description));
+                 memcpy(r->description, val, sizeof(r->description) - 1);
+              }
            }
          } else if (strncasecmp(key, "ctcss_inband", 12) == 0) {
            if (!strncasecmp(val, "true", 4) || !strncasecmp(val, "yes", 3) || !strncasecmp(val, "on", 2)) {
@@ -232,6 +278,10 @@ dict *dconf_load(const char *file) {
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "configuration loaded with %d errors and %d warnings from %s (%d lines)\n", errors, warnings, file, line);
    fclose(fp);
+
+   // avoid leaking memory from strdup above in section processing
+   if (section != NULL)
+      free(section);
 
    return cp;
 }

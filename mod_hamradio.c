@@ -130,7 +130,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       }
 
       int radio = atoi(argv[1]);
-      if (radio < 0 || radio >= MAX_RADIOS) {
+      if (radio < 0 || radio >= globals.max_radios) {
          err_invalid_radio(radio);
          status = SWITCH_STATUS_FALSE;
          goto done;
@@ -143,7 +143,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       }
 
       int radio = atoi(argv[1]);
-      if (radio < 0 || radio >= MAX_RADIOS) {
+      if (radio < 0 || radio >= globals.max_radios) {
          err_invalid_radio(radio);
          status = SWITCH_STATUS_FALSE;
          goto done;
@@ -172,7 +172,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 2) {
          const int radio = atoi(argv[1]);
 
-         if (radio < 0 || radio >= MAX_RADIOS) {
+         if (radio < 0 || radio >= globals.max_radios) {
             err_invalid_radio(radio);
             status = SWITCH_STATUS_FALSE;
             goto done;
@@ -187,7 +187,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 3) {
          const int radio = atoi(argv[1]);
 
-         if (radio < 0 || radio >= MAX_RADIOS) {
+         if (radio < 0 || radio >= globals.max_radios) {
             err_invalid_radio(radio);
             status = SWITCH_STATUS_FALSE;
             goto done;
@@ -223,7 +223,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 2) {
          const int radio = atoi(argv[1]);
 
-         if (radio < 0 || radio >= MAX_RADIOS) {
+         if (radio < 0 || radio >= globals.max_radios) {
             err_invalid_radio(radio);
             status = SWITCH_STATUS_FALSE;
             goto done;
@@ -238,7 +238,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 3) {
          int radio = atoi(argv[1]);
 
-	 if (radio < 0 || radio >= MAX_RADIOS) {
+	 if (radio < 0 || radio >= globals.max_radios) {
 	    err_invalid_radio(radio);
 	    status = SWITCH_STATUS_FALSE;
 	    goto done;
@@ -284,7 +284,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       } else if (argc == 2) {
          int radio = atoi(argv[1]);
 
-	 if (radio < 0 || radio >= MAX_RADIOS) {
+	 if (radio < 0 || radio >= globals.max_radios) {
 	    err_invalid_radio(radio);
 	    status = SWITCH_STATUS_FALSE;
 	    goto done;
@@ -457,6 +457,8 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
             // penalty expired
             if (r->penalty == 0) {
                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d penalty cleared\n", radio);
+               // Optionally Play a status tone to indicate penalty over
+               radio_send_tones(radio, "penalty_clear");
             }
          }
          if (r->status == RADIO_RX) {
@@ -465,11 +467,10 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
             // is a timeout timer set on this channel?
             if (r->timeout_talk > 0) {
                // Has the timer expired?
-               if (r->talk_start + r->timeout_talk <= time(NULL)) {
-                  switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "radio%d ending transmission (TOT expired: %s)\n", radio, time_to_timestr(r->timeout_talk));
-                  // XXX: Optionally Play a status tone to indicate penalty status
-                  // XXX: Figure out which RX radio is causing this TOT and punish it with the transmitter's penalty time
-                  // globals.Radios[rx_radio]->penalty += r->timeout_penalty;
+               if (time(NULL) >= (r->talk_start + r->timeout_talk)) {
+                  switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "radio%d ending transmission (TOT expired: %s, adding %s penalty)\n", radio, time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff));
+                  // Apply a delay before allowing TX again
+                  r->penalty += r->timeout_holdoff;
                   radio_ptt_off(radio);
                }
             }

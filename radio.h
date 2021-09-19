@@ -8,18 +8,34 @@
 // Radio Data //
 ////////////////
 typedef enum RadioRXMode {
-   SQUELCH_MANUAL = 0,		// No automatic TX, manual control via API
-   SQUELCH_GPIO,			// TX when squelch GPIO is present
-   SQUELCH_VOX			// Use Voice Activity Detection to decide
+   SQUELCH_MANUAL = 0,		// Manual control via API only
+   SQUELCH_GPIO,		// Squelch GPIO is present
+   SQUELCH_VOX			// Use Voice Activity Detection code
 } RadioRXMode_t;
 
-typedef enum RadioStatus { RADIO_ERROR = -2, RADIO_DISABLED = -1, RADIO_OFF = 0, RADIO_IDLE, RADIO_RX, RADIO_TX } RadioStatus_t;
+//
+// Negative returns are an error indicator and must NEVER be stored.
+// errors:
+// 	RADIO_BLOCKED		TOT penalty is in effect.
+//	RADIO_ERROR		Invalid or misconfigured radio for request
+//	RADIO_DISABLED		Radio is not in enabled state (hamradio enable radio# to fix)
+// Valid states:
+//	RADIO_OFF		Radio is enabled but powered off
+//	RADIO_IDLE		Radio is powered on and listening
+//	RADIO_RX		Radio is actively receiving
+//	RADIO_TX		Radio is actively transmitting
+//	RADIO_TX_DATA		Radio is actively transmitting data burst
+typedef enum RadioStatus {
+   RADIO_BLOCKED = -3, RADIO_ERROR = -2, RADIO_DISABLED = -1,
+   RADIO_OFF = 0, RADIO_IDLE, RADIO_RX, RADIO_TX, RADIO_TX_DATA
+} RadioStatus_t;
 
 struct Radio {
    ///////////////////
    // configuration //
    ///////////////////
    int		enabled;		// Is channel enabled?
+   char		description[160];	// Describe the interface
    RadioRXMode_t RX_mode;		// How do we decide this radio is hearing something that should be relayed?
    int		timeout_talk;		// How long do we allow someone to talk before stopping TX?
    int		timeout_holdoff;	// How long do we punish triggering the TOT?
@@ -53,8 +69,8 @@ struct Radio {
    // Running totals since restart
    time_t	total_rx, total_tx;
    time_t	last_tx, last_id, last_rx;
-   // When was the current TX started?
-   time_t	talk_start;
+   // When was the current TX/RX started?
+   time_t	talk_start, listen_start;
    // Remaining holdoff (penalty) time for exceeding TOT, before we will allow a TX
    time_t	penalty;
 };
@@ -96,7 +112,7 @@ return 1;
 
 // User has asked us to operate on an invalid radio
 static inline void err_invalid_radio(int radio) {
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "* ERROR - radio%d requested, but system only supports %d radios!\n", radio, MAX_RADIOS);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "* ERROR - radio%d requested, but system only supports %d radios!\n", radio, dconf_get_int("radios", 8));
 }
 
 #endif	// !defined(__RADIO_H)

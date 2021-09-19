@@ -1,13 +1,11 @@
 #LOCALC_FLAGS=
-MAX_RADIOS=8
 MODNAME = mod_hamradio.so
-MODOBJS += mod_hamradio.o dict.o config.o radio.o radio_gpio.o radio_rigctl.o
+MODOBJS += mod_hamradio.o dict.o config.o radio.o radio_gpio.o radio_rigctl.o tones.o
 MODCFLAGS = -Wall -Werror
 MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod
 
 CC = gcc
 CFLAGS = -fPIC -g -ggdb `pkg-config --cflags freeswitch` $(MODCFLAGS) -Wno-unused-variable
-CFLAGS += -DMAX_RADIOS=8
 LDFLAGS = `pkg-config --libs freeswitch` $(MODLDFLAGS)
 
 printsrc_objs += printable_source.txt printable_source.pdf

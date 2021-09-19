@@ -22,12 +22,8 @@
 // Support for rigctl controlled radios (NYI)
 #include "radio_rigctl.h"
 
-// This is the maximum number of radios that can be configured
-// I'm not sure why you would have more than 8 on a pi, but it might work!
-#if	!defined(MAX_RADIOS)
-#warning "MAX_RADIOS undefined. Assuming 8 but ALL source files must use the same value or crashes/weird bugs WILL occur!"
-#define	MAX_RADIOS	8
-#endif
+// Support for playing back saved short tone melodies
+#include "tones.h"
 
 #define	MAX_GPIO	128		// maximum GPIO pin # (this is intentionally high)
 #define	HAMRADIO_CONF	"/etc/freeswitch/hamradio.conf" // configuration file
@@ -44,9 +40,10 @@ typedef enum {
 struct Globals {
    int alive;				// are we shutting down?
    int max_radios;			// Highest radio # configured
-   struct Radio Radios[MAX_RADIOS];	// Radio structures
+   struct Radio *Radios;		// radio structures
    switch_mutex_t *mutex;
    dict *cfg;				// configuration from .conf
+   dict *radio_tones;			// Radio tones
    // XXX: This needs moved when we add support for multiple GPIO chips...
    struct gpiod_chip *gpiochip;
 };

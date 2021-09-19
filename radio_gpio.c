@@ -29,7 +29,7 @@ int radio_gpiochip_init(const char *chipname) {
 int radio_gpio_init(const int radio) {
    Radio_t *r;
 
-   if (radio < 0 || radio >= MAX_RADIOS) {
+   if (radio < 0 || radio >= globals.max_radios) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init: (%d) is not a valid radio id\n", radio);
       err_invalid_radio(radio);
    }
@@ -77,20 +77,23 @@ switch_status_t radio_gpio_fini(void) {
    // if gpiochip is mapped, we need to unmap all the lines then the chip
    if (globals.gpiochip != NULL) {
       // Unmap the lines for each radio
-      for (int i = 0; i < MAX_RADIOS; i++) {
+      for (int i = 0; i < globals.max_radios; i++) {
          if (globals.Radios[i].gpio_power != NULL) {
             // Unmap the line
             gpiod_line_release(globals.Radios[i].gpio_power);
+            globals.Radios[i].gpio_power = NULL;
          }
 
          if (globals.Radios[i].gpio_ptt != NULL) {
             // Unmap the line
             gpiod_line_release(globals.Radios[i].gpio_ptt);
+            globals.Radios[i].gpio_ptt = NULL;
          }
 
          if (globals.Radios[i].gpio_squelch != NULL) {
             // Unmap the line
             gpiod_line_release(globals.Radios[i].gpio_squelch);
+            globals.Radios[i].gpio_squelch = NULL;
          }
       }
 
@@ -104,7 +107,7 @@ switch_status_t radio_gpio_fini(void) {
 switch_status_t radio_gpio_ptt_on(int radio) {
    Radio_t *r;
 
-   if (radio < 0 || radio >= MAX_RADIOS) {
+   if (radio < 0 || radio >= globals.max_radios) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
       err_invalid_radio(radio);
       return SWITCH_STATUS_FALSE;
@@ -112,6 +115,9 @@ switch_status_t radio_gpio_ptt_on(int radio) {
 
    // Shorthand
    r = &globals.Radios[radio];
+
+   if (r == NULL || r->gpio_power == NULL)
+      return SWITCH_STATUS_FALSE;
 
    gpiod_line_set_value(r->gpio_ptt, 1);
    return SWITCH_STATUS_SUCCESS;
@@ -120,7 +126,7 @@ switch_status_t radio_gpio_ptt_on(int radio) {
 switch_status_t radio_gpio_ptt_off(int radio) {
    Radio_t *r;
 
-   if (radio < 0 || radio >= MAX_RADIOS) {
+   if (radio < 0 || radio >= globals.max_radios) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
       err_invalid_radio(radio);
       return SWITCH_STATUS_FALSE;
@@ -128,6 +134,9 @@ switch_status_t radio_gpio_ptt_off(int radio) {
 
    // Shorthand
    r = &globals.Radios[radio];
+
+   if (r == NULL || r->gpio_power == NULL)
+      return SWITCH_STATUS_FALSE;
 
    gpiod_line_set_value(r->gpio_ptt, 0);
    return SWITCH_STATUS_SUCCESS;
@@ -136,7 +145,7 @@ switch_status_t radio_gpio_ptt_off(int radio) {
 switch_status_t radio_gpio_power_on(int radio) {
    Radio_t *r;
 
-   if (radio < 0 || radio >= MAX_RADIOS) {
+   if (radio < 0 || radio >= globals.max_radios) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
       err_invalid_radio(radio);
       return SWITCH_STATUS_FALSE;
@@ -144,6 +153,9 @@ switch_status_t radio_gpio_power_on(int radio) {
 
    // Shorthand
    r = &globals.Radios[radio];
+
+   if (r == NULL || r->gpio_power == NULL)
+      return SWITCH_STATUS_FALSE;
 
    gpiod_line_set_value(r->gpio_power, 1);
    return SWITCH_STATUS_SUCCESS;
@@ -152,7 +164,7 @@ switch_status_t radio_gpio_power_on(int radio) {
 switch_status_t radio_gpio_power_off(int radio) {
    Radio_t *r;
 
-   if (radio < 0 || radio >= MAX_RADIOS) {
+   if (radio < 0 || radio >= globals.max_radios) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
       err_invalid_radio(radio);
       return SWITCH_STATUS_FALSE;
@@ -160,6 +172,9 @@ switch_status_t radio_gpio_power_off(int radio) {
 
    // Shorthand
    r = &globals.Radios[radio];
+
+   if (r == NULL || r->gpio_power == NULL)
+      return SWITCH_STATUS_FALSE;
 
    gpiod_line_set_value(r->gpio_power, 0);
    return SWITCH_STATUS_SUCCESS;

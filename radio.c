@@ -10,22 +10,35 @@
 // radio_get_status_str //
 //////////////////////////
 // Reduce duplication of code...
-static const char *radio_status_msgs[5] = { "OFF", "Idle", "Receiving", "Transmitting", NULL };
+static const char *radio_status_msgs[6] = {
+ // RADIO_OFF		RADIO_IDLE	RADIO_RX
+ "OFF", 		"Idle", 	"Receiving",
+ // RADIO_TX		RADIO_TX_DATA	N/A
+ "Transmitting", 	"TX Data", 	NULL
+};
+
 static const char *radio_get_status_str(const int radio) {
     Radio_t *r = NULL;
 
-    if (radio < 0 || radio >= MAX_RADIOS) {
+    if (radio < 0 || radio >= globals.max_radios) {
        err_invalid_radio(radio);
        return NULL;
     }
     r = &globals.Radios[radio];
+
+    // Should NEVER be negative!
+    if (r->status < 0) {
+       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+         "radio_get_status_str ERROR radio[%d]->status = %d which is invalid. Negative values are error returns and indicate a bug somewhere if saved!\n", radio, r->status);
+       return NULL;
+    }
     return radio_status_msgs[r->status];
 }
 
 RadioStatus_t radio_enable(const int radio) {
    Radio_t *r = NULL;
 
-   if (radio < 0 || radio >= MAX_RADIOS) {
+   if (radio < 0 || radio >= globals.max_radios) {
       err_invalid_radio(radio);
       return RADIO_ERROR;
    }
@@ -48,7 +61,7 @@ RadioStatus_t radio_enable(const int radio) {
 int radio_disable(const int radio) {
    Radio_t *r = NULL;
 
-   if (radio < 0 || radio >= MAX_RADIOS) {
+   if (radio < 0 || radio >= globals.max_radios) {
       err_invalid_radio(radio);
       return RADIO_ERROR;
    }
@@ -85,7 +98,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] radio_set_state(%s) called for radio%d\n", radio_status_msgs[val], radio);
    // try to prevent invalid radios as this is used to index an array
-   if (radio < 0 || radio >= MAX_RADIOS) {
+   if (radio < 0 || radio >= globals.max_radios) {
       err_invalid_radio(radio);
       return RADIO_ERROR;
    }
@@ -122,6 +135,9 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    // What status has been requested?
    switch (val) {
      // Catch errors
+     case RADIO_BLOCKED:
+        // This is an error - blocked state is decided by the value of (r->talk_start + r->timer_talk) and whether it has passed or not...
+        break;
      case RADIO_ERROR:
         err_invalid_radio(radio);
         break;
@@ -138,17 +154,31 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
            radio_gpio_power_off(radio);
         break;
      case RADIO_IDLE:
-     case RADIO_RX:	// This is essentially the same thing but may need to change soon for VAD...
-        if (r->talk_start > 0) {
-           qso_length = time(NULL) - r->talk_start;
-           switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was transmitting for %lu seconds...\n", radio, qso_length);
+        if (r->status == RADIO_TX) {
+           // XXX: Check when last IDed and pause then send a tailing identification
+           if (r->talk_start > 0) {
+              // record statistics about the QSO length
+              qso_length = time(NULL) - r->talk_start;
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was transmitting for %s...\n", radio, time_to_timestr(qso_length));
+              // save the total time transmitted
+              r->total_tx += qso_length;
+           }
+           // save last time transmitted
+           r->last_tx = time(NULL);
         }
 
-        // XXX: Turn off the timeout timer, if still set
+        // If we were receiving, record statistics
+        if (r->status == RADIO_RX) {
+           if (r->listen_start > 0) {
+              qso_length = time(NULL) - r->listen_start;
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was receiving for %s...\n", radio, time_to_timestr(qso_length));
+              r->total_rx += qso_length;
+           }
+           // save last time received
+           r->last_rx = time(NULL);
+        }
 
-        // XXX: Check when last IDed and pause then send a tailing identification
-
-        // Clear PTT
+        // Clear PTT before powering on
         if (r->pin_ptt)
            radio_gpio_ptt_off(radio);
 
@@ -156,17 +186,34 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         if (r->pin_power)
            radio_gpio_power_on(radio);
 
-        // save the total time transmitted
-        r->total_tx += qso_length;
-
         // Clear talk time for TOT
         r->talk_start = 0;
         break;
+     case RADIO_RX:
+        // Clear PTT before powering on
+        if (r->pin_ptt)
+           radio_gpio_ptt_off(radio);
+
+        // Ensure POWER is ON, if it wasn't previously
+        if (r->pin_power)
+           radio_gpio_power_on(radio);
+
+        r->listen_start = time(NULL);
+        break;
      case RADIO_TX:
+     case RADIO_TX_DATA:
+        // Is there a penalty pending on this radio?
+        if (r->penalty > 0) {
+           // Add additional penalty XXX: Should this be here?
+           r->penalty = (r->penalty < r->timeout_holdoff ? r->timeout_holdoff : (r->penalty + r->timeout_holdoff));
+           return RADIO_BLOCKED;
+        }
+
         // Start timers here for TOT, but don't restart it if we didn't stop TXing...
         if (r->talk_start == 0)
            r->talk_start = time(NULL);
 
+        // if a PTT GPIO is configuredm, raise it now
         if (r->pin_ptt)
            radio_gpio_ptt_on(radio);
 
@@ -179,7 +226,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
 
 // Get the current combined (power and ptt) state of the radio
 RadioStatus_t radio_get_state(const int radio) {
-   if (radio < 0 || radio >= MAX_RADIOS) {
+   if (radio < 0 || radio >= globals.max_radios) {
       err_invalid_radio(radio);
       return RADIO_ERROR;
    }
@@ -275,12 +322,20 @@ void radio_power_off(int radio) {
 }
 
 void radio_print_status(switch_stream_handle_t *stream, const int radio) {
+   Radio_t *r;
+   
+   if (radio < 0 || radio > globals.max_radios) {
+      stream->write_function(stream, "invalid radio %d specified\n", radio);
+      return;
+   }
+
+   r = &globals.Radios[radio];
    stream->write_function(stream, "radio%d: ", radio);
 
    switch(radio_get_state(radio)) {
       // Error conditions are handled here (except DISABLED, since it's not really an error)
       case RADIO_ERROR:
-         if (radio >= MAX_RADIOS) {
+         if (radio >= globals.max_radios) {
             stream->write_function(stream, "invalid radio %d specified\n", radio);
             err_invalid_radio(radio);
          } else
@@ -290,10 +345,13 @@ void radio_print_status(switch_stream_handle_t *stream, const int radio) {
          stream->write_function(stream, "DISABLED\n");
          break;
       // Any normal state of the radio is handled here
+      case RADIO_BLOCKED:
+         stream->write_function(stream, "Blocked due to TOT exceeded. Penalty remaining: %s\n", time_to_timestr(r->penalty));
       case RADIO_OFF:
       case RADIO_IDLE:
       case RADIO_RX:
       case RADIO_TX:
+      case RADIO_TX_DATA:
          stream->write_function(stream, "%s\n", radio_get_status_str(radio));
          break;
    }
@@ -304,7 +362,7 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
    Radio_t *r;
 
    // try to prevent invalid radios as this is used to index an array
-   if (radio < 0 || radio >= MAX_RADIOS) {
+   if (radio < 0 || radio >= globals.max_radios) {
       err_invalid_radio(radio);
       return SWITCH_STATUS_FALSE;
    }
@@ -317,15 +375,20 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
       return SWITCH_STATUS_FALSE;
    }
 
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "* radio%d:\n", radio);
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO,    "    enabled: %s\tstatus: %s\n", (r->enabled ? "true" : "false"), radio_get_status_str(radio));
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO,    "* radio%d: %s\n", radio, (r->description ? r->description : ""));
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO,    "    enabled: %s\tstatus: %s\n",
+          (r->enabled ? "true" : "false"), radio_get_status_str(radio));
 
    if (detailed) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "squelch mode: %d %s\tinband ctcss: %s\n", r->RX_mode, (r->squelch_invert ? "(inverted)" : ""), (r->ctcss_inband ? "true" : "false"));
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "squelch mode: %d %s\tinband ctcss: %s\n", r->RX_mode,
+          (r->squelch_invert ? "(inverted)" : ""), (r->ctcss_inband ? "true" : "false"));
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %lu\t\ttotal_tx: %lu\n", r->total_rx, r->total_tx);
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    last_rx: %lu\t\tlast_tx: %lu\tcurr_talk: %s\n", r->last_rx, r->last_tx,
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    last_rx: %lu\t\tlast_tx: %lu\n", r->last_rx, r->last_tx);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    curr_rx: %s\tcurr_tx: %s\n",
+          ((r->listen_start > 0) ? time_to_timestr(time(NULL) - r->listen_start) : "off"),
           ((r->talk_start > 0) ? time_to_timestr(time(NULL) - r->talk_start) : "off"));
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %s\n", time_to_timestr(r->timeout_talk));
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %s\tholdoff:%s\tpenalty:%s\n",
+          time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff), time_to_timestr(r->penalty));
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s\tpa_outdev: %s\n", r->pa_indev, r->pa_outdev);
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, " GPIO:  PTT: %d\tPower: %d\tSquelch: %d\n", r->pin_ptt, r->pin_power, r->pin_squelch);
    }
