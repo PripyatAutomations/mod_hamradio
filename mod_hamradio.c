@@ -329,8 +329,10 @@ switch_status_t load_configuration(switch_bool_t reload) {
 
    // Zero out the configuration structure, such as radio data
    memset(&globals, 0, sizeof(globals));
+
    // Set a default poll interval early...
-   globals.poll_interval = 100;
+   if (globals.poll_interval == 0)
+      globals.poll_interval = 100;
 
    // load the dictionary configuration
    if (!(globals.cfg = dconf_load(HAMRADIO_CONF))) {

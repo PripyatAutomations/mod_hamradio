@@ -220,7 +220,10 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         if (r->talk_start == 0)
            r->talk_start = now;
 
-        // if a PTT GPIO is configuredm, raise it now
+        // XXX: If a CAT PTT is available, raise it
+        // radio_cat_ptt_on(radio);
+
+        // if a PTT GPIO is configured, raise it now
         if (r->pin_ptt)
            radio_gpio_ptt_on(radio);
 
