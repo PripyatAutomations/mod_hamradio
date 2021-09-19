@@ -375,7 +375,8 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
       return SWITCH_STATUS_FALSE;
    }
 
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO,    "* radio%d: %s\n", radio, (r->description ? r->description : ""));
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO,    "* radio%d: %s\n", radio, r->description);
+     /*(r->description ? r->description : "")); */
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO,    "    enabled: %s\tstatus: %s\n",
           (r->enabled ? "true" : "false"), radio_get_status_str(radio));
 
