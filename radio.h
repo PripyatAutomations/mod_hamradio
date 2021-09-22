@@ -80,23 +80,23 @@ struct Radio {
 ////////////////
 typedef struct Radio Radio_t;
 
-extern void radio_print_status(switch_stream_handle_t *stream, int radio);
-extern RadioStatus_t radio_set_state(int radio, enum RadioStatus val);
-extern RadioStatus_t radio_get_state(int radio);
+extern void radio_print_status(switch_stream_handle_t *stream, const int radio);
+extern RadioStatus_t radio_set_state(const int radio, enum RadioStatus val);
+extern RadioStatus_t radio_get_state(const int radio);
 // Enable/disable a radio
-extern RadioStatus_t radio_enable(int radio);
-extern RadioStatus_t radio_disable(int radio);
+extern RadioStatus_t radio_enable(const int radio);
+extern RadioStatus_t radio_disable(const int radio);
 
 // Turn POWER on/off for a radio
-extern void radio_power_on(int radio);
-extern void radio_power_off(int radio);
+extern void radio_power_on(const int radio);
+extern void radio_power_off(const int radio);
 
 // Control PTT (Push To Talk) on to start/stop transmitting
-extern void radio_ptt_on(int radio);
-extern void radio_ptt_off(int radio);
+extern void radio_ptt_on(const int radio);
+extern void radio_ptt_off(const int radio);
 // And for all the radios in a conference?
-extern void radio_conf_ptt_on(int radio);
-extern void radio_conf_ptt_off(int radio);
+extern void radio_conf_ptt_on(const int radio);
+extern void radio_conf_ptt_off(const int radio);
 
 // Status messages, etc
 extern int radio_dump_state_var(const int radio, switch_bool_t detailed);
@@ -105,13 +105,13 @@ extern int radio_dump_state_var(const int radio, switch_bool_t detailed);
 // And some inlines that belong here //
 ///////////////////////////////////////
 // Is the radio enabled??
-static inline int is_radio_enabled(int radio) {
+static inline int is_radio_enabled(const int radio) {
 //    return globals.Radios[radio].enabled;
 return 1;
 }
 
 // User has asked us to operate on an invalid radio
-static inline void err_invalid_radio(int radio) {
+static inline void err_invalid_radio(const int radio) {
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "* ERROR - radio%d requested, but system only supports %d radios!\n", radio, dconf_get_int("max_radios", 8));
 }
 

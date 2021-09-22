@@ -6,6 +6,6 @@
 
 
 // Initialize the connection to rigctl for the selected radio
-switch_status_t radio_rigctl_init(int radio) {
+switch_status_t radio_rigctl_init(const int radio) {
     return SWITCH_STATUS_SUCCESS;
 }

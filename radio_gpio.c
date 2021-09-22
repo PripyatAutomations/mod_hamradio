@@ -112,7 +112,7 @@ switch_status_t radio_gpio_fini(void) {
    return SWITCH_STATUS_SUCCESS;
 }
 
-switch_status_t radio_gpio_ptt_on(int radio) {
+switch_status_t radio_gpio_ptt_on(const int radio) {
    Radio_t *r;
 
    if (radio < 0 || radio >= globals.max_radios) {
@@ -131,7 +131,7 @@ switch_status_t radio_gpio_ptt_on(int radio) {
    return SWITCH_STATUS_SUCCESS;
 }
 
-switch_status_t radio_gpio_ptt_off(int radio) {
+switch_status_t radio_gpio_ptt_off(const int radio) {
    Radio_t *r;
 
    if (radio < 0 || radio >= globals.max_radios) {
@@ -150,7 +150,7 @@ switch_status_t radio_gpio_ptt_off(int radio) {
    return SWITCH_STATUS_SUCCESS;
 }
 
-switch_status_t radio_gpio_power_on(int radio) {
+switch_status_t radio_gpio_power_on(const int radio) {
    Radio_t *r;
 
    if (radio < 0 || radio >= globals.max_radios) {
@@ -169,7 +169,7 @@ switch_status_t radio_gpio_power_on(int radio) {
    return SWITCH_STATUS_SUCCESS;
 }
 
-switch_status_t radio_gpio_power_off(int radio) {
+switch_status_t radio_gpio_power_off(const int radio) {
    Radio_t *r;
 
    if (radio < 0 || radio >= globals.max_radios) {
@@ -188,7 +188,7 @@ switch_status_t radio_gpio_power_off(int radio) {
    return SWITCH_STATUS_SUCCESS;
 }
 
-int radio_gpio_read_squelch(int radio) {
+int radio_gpio_read_squelch(const int radio) {
    Radio_t *r;
    int val = 0;
 

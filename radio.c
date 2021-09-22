@@ -247,7 +247,7 @@ RadioStatus_t radio_get_state(const int radio) {
    return (globals.Radios[radio].status);
 }
 
-void radio_ptt_on(int radio) {
+void radio_ptt_on(const int radio) {
    switch_channel_t *channel;
 
 //   if (!session) {
@@ -272,17 +272,17 @@ void radio_ptt_on(int radio) {
    radio_set_state(radio, RADIO_TX);
 }
 
-void radio_conf_ptt_on(int radio) {
+void radio_conf_ptt_on(const int radio) {
   // XXX: Enumerate the radios attached to the channel
   // XXX: Call radio_ptt_on for each
 }
 
-void radio_conf_ptt_off(int radio) {
+void radio_conf_ptt_off(const int radio) {
   // XXX: Enumerate the radios attached to the channel
   // XXX: Call radio_ptt_on for each
 }
 
-void radio_ptt_off(int radio) {
+void radio_ptt_off(const int radio) {
    switch_channel_t *channel;
 
 //   if (!session) {
@@ -298,7 +298,7 @@ void radio_ptt_off(int radio) {
    radio_set_state(radio, RADIO_IDLE);
 }
 
-void radio_power_on(int radio) {
+void radio_power_on(const int radio) {
    switch_channel_t *channel;
 
 //   if (!session) {
@@ -317,7 +317,7 @@ void radio_power_on(int radio) {
    }
 }
 
-void radio_power_off(int radio) {
+void radio_power_off(const int radio) {
    switch_channel_t *channel;
 
 //   if (!session) {
