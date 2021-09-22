@@ -167,7 +167,7 @@ dict *dconf_load(const char *file) {
          if (globals.Radios == NULL)
             globals.Radios = malloc(sizeof(Radio_t) * globals.max_radios);
 
-         r = &globals.Radios[radio];
+         r = &Radios(radio);
 
          // make sure you free this!
          key = strndup(skip, (sep - skip));

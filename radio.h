@@ -4,6 +4,9 @@
 #include <gpiod.h>
 #endif
 
+#define	Radios(x)	(globals.Radios[x])
+#define	is_radio_enabled(x)	(Radios(x).enabled)
+
 ////////////////
 // Radio Data //
 ////////////////
@@ -31,6 +34,9 @@ typedef enum RadioStatus {
 } RadioStatus_t;
 
 struct Radio {
+   ///// Lock /////
+   switch_mutex_t *mutex;
+
    ///////////////////
    // configuration //
    ///////////////////
@@ -104,11 +110,6 @@ extern int radio_dump_state_var(const int radio, switch_bool_t detailed);
 ///////////////////////////////////////
 // And some inlines that belong here //
 ///////////////////////////////////////
-// Is the radio enabled??
-static inline int is_radio_enabled(const int radio) {
-//    return globals.Radios[radio].enabled;
-return 1;
-}
 
 // User has asked us to operate on an invalid radio
 static inline void err_invalid_radio(const int radio) {

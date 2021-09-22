@@ -36,7 +36,7 @@ int radio_gpio_init(const int radio) {
    }
 
    // Shorthand
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
 
    if (globals.gpiochip == NULL) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d) failed - gpiochip unset! you MUST call radio_gpiochip_init first!\n", radio);
@@ -122,7 +122,7 @@ switch_status_t radio_gpio_ptt_on(const int radio) {
    }
 
    // Shorthand
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
 
    if (r == NULL || r->gpio_power == NULL)
       return SWITCH_STATUS_FALSE;
@@ -141,7 +141,7 @@ switch_status_t radio_gpio_ptt_off(const int radio) {
    }
 
    // Shorthand
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
 
    if (r == NULL || r->gpio_power == NULL)
       return SWITCH_STATUS_FALSE;
@@ -160,7 +160,7 @@ switch_status_t radio_gpio_power_on(const int radio) {
    }
 
    // Shorthand
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
 
    if (r == NULL || r->gpio_power == NULL)
       return SWITCH_STATUS_FALSE;
@@ -179,7 +179,7 @@ switch_status_t radio_gpio_power_off(const int radio) {
    }
 
    // Shorthand
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
 
    if (r == NULL || r->gpio_power == NULL)
       return SWITCH_STATUS_FALSE;
@@ -195,7 +195,7 @@ int radio_gpio_read_squelch(const int radio) {
    if (radio < 0 || radio > globals.max_radios)
       return -1;
 
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
 
    if (r == NULL || r->gpio_squelch == NULL)
       return -1;

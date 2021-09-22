@@ -24,7 +24,7 @@ static const char *radio_get_status_str(const int radio) {
        err_invalid_radio(radio);
        return NULL;
     }
-    r = &globals.Radios[radio];
+    r = &Radios(radio);
 
     // Should NEVER be negative!
     if (r->status < 0) {
@@ -43,7 +43,7 @@ RadioStatus_t radio_enable(const int radio) {
       return RADIO_ERROR;
    }
 
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
 
    if (r->enabled && (r->status >= RADIO_IDLE)) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d is already enabled!\n", radio);
@@ -66,7 +66,7 @@ int radio_disable(const int radio) {
       return RADIO_ERROR;
    }
 
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
 
    if (!r->enabled) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d is already disabled!\n", radio);
@@ -106,7 +106,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    }
 
    // pointer to the radio struct
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
 
    if (r == NULL) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio] set_state(%s) called for radio%d - Cannot find radio data structure\n", radio_status_msgs[val], radio);
@@ -241,10 +241,10 @@ RadioStatus_t radio_get_state(const int radio) {
       return RADIO_ERROR;
    }
 
-   if (globals.Radios[radio].enabled == 0)
+   if (Radios(radio).enabled == 0)
       return RADIO_DISABLED;
 
-   return (globals.Radios[radio].status);
+   return (Radios(radio).status);
 }
 
 void radio_ptt_on(const int radio) {
@@ -258,7 +258,7 @@ void radio_ptt_on(const int radio) {
 //   switch_assert(channel);
 
    // Refuse to TX on disabled radio
-   if (!globals.Radios[radio].enabled) {
+   if (!Radios(radio).enabled) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Denying request to TX on radio%d in DISABLED state!\n", radio);
       return;
    }
@@ -308,7 +308,7 @@ void radio_power_on(const int radio) {
 //   channel = switch_core_session_get_channel(session);
 //   switch_assert(channel);
 
-   if (!globals.Radios[radio].enabled) {
+   if (!Radios(radio).enabled) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Refusing to power on radio%d in DISABLED state. requested by app\n", radio);
       return;
    } else {
@@ -339,7 +339,7 @@ void radio_print_status(switch_stream_handle_t *stream, const int radio) {
       return;
    }
 
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
    stream->write_function(stream, "radio%d: ", radio);
 
    switch(radio_get_state(radio)) {
@@ -379,7 +379,7 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
    }
 
    // pointer to the radio struct
-   r = &globals.Radios[radio];
+   r = &Radios(radio);
 
    if (r == NULL) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio] radio_dump_state_var(%d) cannot find radio data structure\n", radio);

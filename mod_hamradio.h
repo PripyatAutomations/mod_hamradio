@@ -45,6 +45,7 @@ struct Globals {
                                         // before rescanning the radios. This controls CPU load
    struct Radio *Radios;		// radio structures
    switch_mutex_t *mutex;
+   switch_memory_pool_t  *pool;		// our memory pool
    dict *cfg;				// configuration from .conf
    dict *radio_tones;			// Radio tones
    // XXX: This needs moved when we add support for multiple GPIO chips...

@@ -163,7 +163,7 @@ SWITCH_STANDARD_API(hamradio_function) {
          for (int radio = 0; radio < globals.max_radios; radio++) {
             stream->write_function(stream, "radio%d: power ", radio);
 
-            if (globals.Radios[radio].status == RADIO_OFF)
+            if (Radios(radio).status == RADIO_OFF)
                stream->write_function(stream, "off\n");
             else
 	       stream->write_function(stream, "on\n");
@@ -180,7 +180,7 @@ SWITCH_STANDARD_API(hamradio_function) {
 
 	 stream->write_function(stream, "radio%d: power ", radio);
 
-	 if (globals.Radios[radio].status == RADIO_OFF)
+	 if (Radios(radio).status == RADIO_OFF)
 	    stream->write_function(stream, "off\n");
          else
             stream->write_function(stream, "on\n");
@@ -193,7 +193,7 @@ SWITCH_STANDARD_API(hamradio_function) {
             goto done;
          }
 
-         if (!globals.Radios[radio].enabled) {
+         if (!Radios(radio).enabled) {
 	    stream->write_function(stream, "Ignoring POWER ON for radio%d because it is in DISABLED state\n", radio);
 	    status = SWITCH_STATUS_FALSE;
 	    goto done;
@@ -244,7 +244,7 @@ SWITCH_STANDARD_API(hamradio_function) {
 	    goto done;
 	 }
 
-	 if (!globals.Radios[radio].enabled) {
+	 if (!Radios(radio).enabled) {
 	    stream->write_function(stream, "Denying PTT request (via cli) for radio%d because it is in DISABLED state.\n", radio);
 	    status = SWITCH_STATUS_FALSE;
 	    goto done;
@@ -311,10 +311,12 @@ switch_status_t load_configuration(switch_bool_t reload) {
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] %sloading configuration from hamradio.conf\n", (reload ? "re" : ""));
 
-// XXX: get this shite sorted out so we can reload safely
-//   if (globals.mutex == NULL)
-//      switch_mutex_init(globals.mutex, SWITCH_THREAD_MUTEX_UNNESTED, /* XXX Figure out pool */
-//   switch_mutex_lock(globals.mutex);
+   if (globals.mutex == NULL) { 
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "load_configuration - mutex not initialized, failing!\n");
+      return SWITCH_STATUS_FALSE;
+   }
+
+   switch_mutex_lock(globals.mutex);
 
    if (reload == true) {
       radio_gpio_fini();
@@ -327,8 +329,6 @@ switch_status_t load_configuration(switch_bool_t reload) {
 
    }
 
-   // Zero out the configuration structure, such as radio data
-   memset(&globals, 0, sizeof(globals));
 
    // Set a default poll interval early...
    if (globals.poll_interval == 0)
@@ -345,9 +345,12 @@ switch_status_t load_configuration(switch_bool_t reload) {
 
    // step through all the configured radios and initialize them
    for (int radio = 0; radio < globals.max_radios; radio++) {
-      Radio_t *r = &globals.Radios[radio];
+      Radio_t *r = &Radios(radio);
 
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Bringing up interface radio%d\n", radio);
+
+      // Initialize our mutexes
+      switch_mutex_init(&Radios(radio).mutex, SWITCH_MUTEX_UNNESTED, globals.pool);
 
       // initialize it's GPIO interfaces, if any
       radio_gpio_init(radio);
@@ -362,7 +365,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Interface radio%d successfully brought up.\n", radio);
    }
 
-//   switch_mutex_unlock(globals.mutex);
+   switch_mutex_unlock(globals.mutex);
    return status;
 }
 
@@ -390,6 +393,15 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    switch_application_interface_t *app_interface;
    *module_interface = switch_loadable_module_create_module_interface(pool, modname);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "mod_hamradio loaded. please be sure your usage is compliant with regulations!\n");
+
+   // Zero out the configuration structure, such as radio data
+   memset(&globals, 0, sizeof(globals));
+
+   // Initialize our mutexes
+   switch_mutex_init(&globals.mutex, SWITCH_MUTEX_UNNESTED, pool);
+
+   // Update some essential pointers:
+   globals.pool = pool;
 
    // Load config and handle reloads
    load_configuration(0);
@@ -440,7 +452,7 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
    // turn off PTT and POWER pins, DISABLE the radio
    for (int radio = 0; radio < globals.max_radios; radio++) {
       radio_set_state(radio, RADIO_OFF);
-      globals.Radios[radio].enabled = 0;
+      Radios(radio).enabled = 0;
    }
 
    // close all GPIO interfaces
@@ -475,7 +487,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
       time_t now = time(NULL);
 
       for (int radio = 0; radio < globals.max_radios; radio++) {
-         Radio_t *r = &globals.Radios[radio];
+         Radio_t *r = &Radios(radio);
          int sqval = 0;
          switch_bool_t squelch_state = false;
 
