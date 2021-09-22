@@ -60,8 +60,8 @@ extern Globals_t globals;		// in mod_hamradio.c
 ////////////////
 // Configuration file
 extern switch_status_t load_configuration(switch_bool_t reload);
-extern time_t timestr_to_time(const char *str, const time_t def);
-extern char *time_to_timestr(time_t itime);
+extern switch_time_t timestr_to_time(const char *str, const switch_time_t def);
+extern char *time_to_timestr(switch_time_t itime);
 
 static inline int str_to_intbool(const char *str) {
    if (!strcasecmp(str, "ON") || !strcasecmp(str, "TRUE") || !strcasecmp(str, "1")) {

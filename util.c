@@ -10,10 +10,10 @@
 /* these two are used to convert from/to a formatted time string.  the string
  * should be of the format [Xd][Xh][Xm][X][s].  e.g. 3600 is 3600s, or 1h.
  * either lower or upper case is acceptable. */
-time_t timestr_to_time(const char *str, const time_t def) {
+switch_time_t timestr_to_time(const char *str, const switch_time_t def) {
    char       *s;
    char       *s2;
-   time_t      ret = 0;
+   switch_time_t      ret = 0;
 
    if (str == NULL)
       return def;
@@ -47,7 +47,7 @@ time_t timestr_to_time(const char *str, const time_t def) {
    return ret;
 }
 
-char       *time_to_timestr(time_t itime) {
+char       *time_to_timestr(switch_time_t itime) {
    int         d, h, m, s;
    static char rbuf[64];
    int         rlen = 0;

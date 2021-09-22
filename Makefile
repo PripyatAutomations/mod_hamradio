@@ -1,7 +1,7 @@
 #LOCALC_FLAGS=
 MODNAME = mod_hamradio.so
 MODOBJS += mod_hamradio.o dict.o config.o radio.o radio_gpio.o radio_rigctl.o tones.o
-MODOBJS += conference.o util.o
+MODOBJS += conference.o util.o channel.o
 MODCFLAGS = -Wall -Werror
 MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod
 real_objs := $(foreach x,${MODOBJS},.obj/${x})

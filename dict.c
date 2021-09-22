@@ -170,7 +170,7 @@ static keypair *dict_lookup(dict *d, const char *key, unsigned hash) {
 /* Add an item to a dictionary without copying key/val
  *	Used by dict_resize() only.
  */
-static int dict_add_p(dict *d, const char *key, const char *val, const void *blob, time_t ts, int copy) {
+static int dict_add_p(dict *d, const char *key, const char *val, const void *blob, switch_time_t ts, int copy) {
     unsigned  hash;
     keypair  *slot;
 
@@ -209,7 +209,7 @@ static int dict_add_p(dict *d, const char *key, const char *val, const void *blo
        if (ts)
           slot->ts = ts;
        else
-          slot->ts = time(NULL);
+          slot->ts = switch_micro_time_now();
 
        d->used++;
        d->fill++;
@@ -230,7 +230,7 @@ int dict_add(dict *d, const char *key, const char *val) {
 }
 
 /* dict_add_ts: Add an item to a dict with chosen timestamp */
-int dict_add_ts(dict *d, const char *key, const char *val, time_t ts) {
+int dict_add_ts(dict *d, const char *key, const char *val, switch_time_t ts) {
     return dict_add_p(d, key, val, NULL, ts, 1);
 }
 
@@ -240,7 +240,7 @@ int dict_add_blob(dict *d, const char *key, const void **ptr) {
 }
 
 /* dict_add_blob_ts: Add a blob to a dict with chosen timestamp */
-int dict_add_blob_ts(dict *d, const char *key, const void **ptr, time_t ts) {
+int dict_add_blob_ts(dict *d, const char *key, const void **ptr, switch_time_t ts) {
     return dict_add_p(d, key, NULL, &ptr, ts, 1);
 }
 
@@ -398,7 +398,7 @@ int dict_del(dict *d, const char *key) {
 }
 
 /* Public: enumerate a dictionary */
-int dict_enumerate(dict *d, int rank, const char **key, const char **val, time_t *ts) {
+int dict_enumerate(dict *d, int rank, const char **key, const char **val, switch_time_t *ts) {
     if (!d || !key || !val || (rank < 0))
        return -1;
 
@@ -427,7 +427,7 @@ int dict_dump(dict *d, FILE *out) {
     const char *val;
     int    rank = 0;
     int    errors = 0;
-    time_t ts = 0;
+    switch_time_t ts = 0;
 
     if (!d || !out)
        return errors;

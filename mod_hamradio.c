@@ -326,9 +326,7 @@ switch_status_t load_configuration(switch_bool_t reload) {
          dict_free(globals.cfg);
          globals.cfg = NULL;
       }
-
    }
-
 
    // Set a default poll interval early...
    if (globals.poll_interval == 0)
@@ -364,7 +362,6 @@ switch_status_t load_configuration(switch_bool_t reload) {
 
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Interface radio%d successfully brought up.\n", radio);
    }
-
    switch_mutex_unlock(globals.mutex);
    return status;
 }
@@ -482,9 +479,11 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
    while (!globals.alive)
       sleep(1);
 
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "hamradio interface waking up!\n");
+
    // As long as we aren't shutting down, scan the radios
    while (globals.alive) {
-      time_t now = time(NULL);
+      switch_time_t now = switch_micro_time_now();
 
       for (int radio = 0; radio < globals.max_radios; radio++) {
          Radio_t *r = &Radios(radio);
@@ -566,7 +565,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
          } else if (r->status == RADIO_TX_DATA) {
                // XXX: Implement duty cycle management!
                // XXX: Handle modem tasks here
-               // store last TX as now
+               // store last TX time
                r->last_tx = now;
          }
 
