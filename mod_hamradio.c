@@ -483,7 +483,8 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
 
    // As long as we aren't shutting down, scan the radios
    while (globals.alive) {
-      switch_time_t now = switch_micro_time_now();
+//      switch_time_t now = switch_micro_time_now();
+      switch_time_t now = time(NULL);
 
       for (int radio = 0; radio < globals.max_radios; radio++) {
          Radio_t *r = &Radios(radio);
@@ -549,7 +550,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
             // is a timeout timer set on this channel?
             if (r->timeout_talk > 0) {
                // Has the timer expired?
-               if (now <= (r->talk_start + r->timeout_talk)) {
+               if (now >= (r->talk_start + r->timeout_talk)) {
                   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "radio%d ending transmission (TOT expired: %s, adding %s penalty)\n", radio, time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff));
 
                   // Apply a delay before allowing TX again
