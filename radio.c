@@ -186,11 +186,11 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         }
 
         // Clear PTT before powering on
-        if (r->pin_ptt)
+        if (r->gpio_ptt)
            radio_gpio_ptt_off(radio);
 
         // Ensure POWER is ON, if it wasn't previously
-        if (r->pin_power)
+        if (r->gpio_power)
            radio_gpio_power_on(radio);
 
         // Clear talk time for TOT
@@ -198,11 +198,11 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         break;
      case RADIO_RX:
         // Clear PTT before powering on
-        if (r->pin_ptt)
+        if (r->gpio_ptt)
            radio_gpio_ptt_off(radio);
 
         // Ensure POWER is ON, if it wasn't previously
-        if (r->pin_power)
+        if (r->gpio_power)
            radio_gpio_power_on(radio);
 
         r->listen_start = now;
@@ -224,7 +224,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         // radio_cat_ptt_on(radio);
 
         // if a PTT GPIO is configured, raise it now
-        if (r->pin_ptt)
+        if (r->gpio_ptt)
            radio_gpio_ptt_on(radio);
 
         break;
