@@ -153,11 +153,11 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
      ////////////////////////
      case RADIO_OFF:
         // Clear PTT
-        if (r->pin_ptt)
+        if (r->gpio_ptt)
            radio_gpio_ptt_off(radio);
 
         // Turn off IGN SENS or POWER RELAY
-        if (r->pin_power)
+        if (r->gpio_power)
            radio_gpio_power_off(radio);
         break;
      case RADIO_IDLE:
