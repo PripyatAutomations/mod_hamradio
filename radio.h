@@ -50,7 +50,9 @@ struct Radio {
 
    // GPIO pins
    int		pin_power;		// Power or ignition sense relay output
+   int		pin_power_invert;	// invert power gpio?
    int		pin_ptt;		// Push to Talk output
+   int		pin_ptt_invert;		// invert ptt gpio?
    int		pin_squelch;		// Squelch input from radio (optional voltage divider or optocoupler)
 
    // mod_portaudio devices to provide the audio channel

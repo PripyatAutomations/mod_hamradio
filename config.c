@@ -135,13 +135,22 @@ dict *dconf_load(const char *file) {
          // free some memory up
          free(key);
          free(val);
-      } else if (strcasecmp(section, "conference") == 0) {
+      } else if (strncasecmp(section, "conference", 10) == 0) {
+         char *sep = strchr(skip, '=');
          // make sure you free this!
-//         key = strndup(skip, (sep - skip));
-//         val = strndup(sep + 1, strlen(sep + 1));
+         key = strndup(skip, (sep - skip));
+         val = strndup(sep + 1, strlen(sep + 1));
          // Conference config parser - XXX: Create a new conference struct and add to list...
-//         free(key);
-//         free(val);
+         if (strcasecmp(key, "radios") == 0) {
+         } else if (strcasecmp(key, "master_radio") == 0) {
+           // XXX:
+         } else if (strcasecmp(key, "admin_pin") == 0) {
+           // XXX:
+         } else if (strcasecmp(key, "listen_pin") == 0) {
+           // XXX:
+         }
+         free(key);
+         free(val);
       } else if (strncasecmp(section, "radio", 5) == 0) {
          int radio = -1;
          char *radio_id_s = section + 5;
@@ -215,6 +224,12 @@ dict *dconf_load(const char *file) {
            } else {
               r->ctcss_inband = false;
            }
+         } else if (strcasecmp(key, "gpio_power_invert") == 0) {
+           if (!strcasecmp(val, "true") || !strcasecmp(val, "yes") || !strcasecmp(val, "on")) {
+              r->pin_power_invert = true;
+           } else {
+              r->pin_power_invert = false;
+           }
          } else if (strcasecmp(key, "gpio_power") == 0) {
            int ival = atoi(val);
 
@@ -226,6 +241,12 @@ dict *dconf_load(const char *file) {
               r->pin_power = ival;
            } else { 
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cfg:radio%d] Key %s has invalid value '%s'. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
+           }
+         } else if (strcasecmp(key, "gpio_ptt_invert") == 0) {
+           if (!strcasecmp(val, "true") || !strcasecmp(val, "yes") || !strcasecmp(val, "on")) {
+              r->pin_ptt_invert = true;
+           } else {
+              r->pin_ptt_invert = false;
            }
          } else if (strcasecmp(key, "gpio_ptt") == 0) {
            int ival = atoi(val);
@@ -357,7 +378,7 @@ char       *dconf_get_str(const char *key, const char *def) {
    return (char *)dict_get(_CONF_DICT, key, def);
 }
 
-time_t dconf_get_time(const char *key, const time_t def) {
+switch_time_t dconf_get_time(const char *key, const switch_time_t def) {
    return (timestr_to_time(dconf_get_str(key, NULL), def));
 }
 
