@@ -1,37 +1,29 @@
-****
- Right now (9/19) there's a bug in the configuration stuff that mucks up
-all the TOT and holdoff bits. I'll try to get it sorted out tomorrow.
+mod_hamradio
+------------
 
-Sorry!! :O At least i saved you finding out the hard way! Come back
-tomorrow!
-----
+A channel driver for radios attached to USB sound widgets.
 
-Reloading the module may result in a crash. I'm working on debugging that.
-Feel free to cleanup/fix bits of the code, i'm throwing this together in
-whatever scraps of free time I get, as I need it functional in a few weeks.
+Currently we only support GPIO based control but there are plans to
+eventually support rigctld for controlling more advanced rigs.
 
-Sorry for the mess. This is some quick code i threw together in a couple of
-long days trying to get my remote station up and going.
+You will need to create a dialplan leveraging mod_conference and
+mod_portaudio to do much useful with this code.
 
-
-Here you will find a module to let one connect one or more radios to
-freeswitch using cheap USB sound widgets and relays attached to GPIO pins.
+There's a lot left to do before this is ready for every day use, but feature
+requests, bug reports, and questions are always well!
 
 Building your interface is up to you, but shouldn't require any exotic
 hardware.
-
 
 Feel free to add support for features or other platforms as you need, but i
 will only be supporting Raspberry Pi 4 GPIOs officially.
 
 We use libgpiod, however, so it shouldn't take much to make work elsewhere.
 
-
 Audio is handled via portaudio channels, allowing you to use as many
 channels as the machine can support.
 
 No warranties of any kind! If it breaks, you get to keep the pieces!
 
-Feel free to contribute bugfixes/issues via github
-
-https://github.com/PripyatAutomations/mod_hamradio
+Feel free to contribute bugfixes/issues via github at
+   https://github.com/PripyatAutomations/mod_hamradio
