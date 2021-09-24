@@ -89,7 +89,8 @@ int radio_disable(const int radio) {
 RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    Radio_t *r = NULL;
    RadioStatus_t old_status;
-   switch_time_t qso_length = 0, now = switch_micro_time_now();
+   switch_time_t qso_length = 0; //now = switch_micro_time_now();
+   time_t now = time(NULL);
    switch_status_t rv = SWITCH_STATUS_SUCCESS;
 
    // Negative values aren't allowed in the struct but can be returned in case of error
@@ -370,7 +371,8 @@ void radio_print_status(switch_stream_handle_t *stream, const int radio) {
 // XXX: This needs to be improved so that it uses stream->write_function(stream, ...) instead of switch_log_printf *IF* coming from api
 int radio_dump_state_var(const int radio, switch_bool_t detailed) {
    Radio_t *r;
-   switch_time_t now = switch_micro_time_now();
+//   switch_time_t now = switch_micro_time_now();
+   time_t now = time(NULL);
 
    // try to prevent invalid radios as this is used to index an array
    if (radio < 0 || radio >= globals.max_radios) {
