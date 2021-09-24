@@ -544,7 +544,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
 
          // Handle tasks specific to the state of the selected radio (RX, TX, TXDATA)
          if (r->status == RADIO_RX) {
-            // Here we should do receive radio stuff
+            // Here we should do receive radio stuff, like establish audio if not already done
          } else if (r->status == RADIO_TX) {
             // is a timeout timer set on this channel?
             if (r->timeout_talk > 0) {
