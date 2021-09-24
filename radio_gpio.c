@@ -128,7 +128,10 @@ switch_status_t radio_gpio_ptt_on(const int radio) {
    if (r == NULL || r->gpio_power == NULL)
       return SWITCH_STATUS_FALSE;
 
-   gpiod_line_set_value(r->gpio_ptt, 1);
+   if (r->pin_ptt_invert)
+      gpiod_line_set_value(r->gpio_ptt, 0);
+   else
+      gpiod_line_set_value(r->gpio_ptt, 1);
    return SWITCH_STATUS_SUCCESS;
 }
 
@@ -147,7 +150,11 @@ switch_status_t radio_gpio_ptt_off(const int radio) {
    if (r == NULL || r->gpio_power == NULL)
       return SWITCH_STATUS_FALSE;
 
-   gpiod_line_set_value(r->gpio_ptt, 0);
+   if (r->pin_ptt_invert)
+      gpiod_line_set_value(r->gpio_ptt, 1);
+   else
+      gpiod_line_set_value(r->gpio_ptt, 0);
+
    return SWITCH_STATUS_SUCCESS;
 }
 
@@ -166,7 +173,10 @@ switch_status_t radio_gpio_power_on(const int radio) {
    if (r == NULL || r->gpio_power == NULL)
       return SWITCH_STATUS_FALSE;
 
-   gpiod_line_set_value(r->gpio_power, 1);
+   if (r->pin_power_invert)
+      gpiod_line_set_value(r->gpio_power, 0);
+   else
+      gpiod_line_set_value(r->gpio_power, 1);
    return SWITCH_STATUS_SUCCESS;
 }
 
@@ -185,7 +195,10 @@ switch_status_t radio_gpio_power_off(const int radio) {
    if (r == NULL || r->gpio_power == NULL)
       return SWITCH_STATUS_FALSE;
 
-   gpiod_line_set_value(r->gpio_power, 0);
+   if (r->pin_power_invert)
+      gpiod_line_set_value(r->gpio_power, 1);
+   else
+      gpiod_line_set_value(r->gpio_power, 0);
    return SWITCH_STATUS_SUCCESS;
 }
 
