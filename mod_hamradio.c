@@ -212,7 +212,7 @@ SWITCH_STANDARD_API(hamradio_function) {
          stream->write_function(stream, "PTT status for ALL radios:\n");
 
          for (int radio = 0; radio < globals.max_radios; radio++) {
-            stream->write_function(stream, "radio%d: ");
+            stream->write_function(stream, "radio%d: ", radio);
 
 	    if (radio_get_state(radio) == RADIO_TX)
                stream->write_function(stream, "transmitting\n");
