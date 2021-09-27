@@ -210,10 +210,9 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         break;
      case RADIO_TX:
      case RADIO_TX_DATA:
-        // Is there a penalty pending on this radio?
+        // Is there a penalty pending on this radio? If so, reset it since someone's trying to make us TX
         if (r->penalty > 0) {
-           // Add additional penalty XXX: Should this be here?
-           r->penalty = (r->penalty < r->timeout_holdoff ? r->timeout_holdoff : (r->penalty + r->timeout_holdoff));
+           r->penalty = r->timeout_holdoff;
            return RADIO_BLOCKED;
         }
 
@@ -222,7 +221,8 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
            r->talk_start = now;
 
         // XXX: If a CAT PTT is available, raise it
-        // radio_cat_ptt_on(radio);
+        // if (r->cat_api->Has_PTT)
+        //    radio_cat_ptt_on(radio);
 
         // if a PTT GPIO is configured, raise it now
         if (r->gpio_ptt)
@@ -394,12 +394,12 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
           (r->enabled ? "true" : "false"), radio_get_status_str(radio));
 
    if (detailed) {
-      char tmp1[30], tmp2[30];	// date string buffers
+      char tmp1[40], tmp2[40];	// date string buffers
       const char date_fmt[19] = "%Y-%d-%m %H:%M:%S";
 
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   sq. mode: %d %s\t\tinband ctcss: %s\n", r->RX_mode,
           (r->squelch_invert ? "(invert)" : ""), (r->ctcss_inband ? "true" : "false"));
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %s\t\t\ttotal_tx: %s\n", time_to_timestr(r->total_rx), time_to_timestr(r->total_tx));
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   total_rx: %lu\t\t\ttotal_tx: %lu\n", r->total_rx, r->total_tx);
 
       // Show time stamps with date for last TX/RX times
       memset(tmp1, 0, sizeof(tmp1));
@@ -413,15 +413,15 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
          strftime(tmp2, sizeof(tmp2), date_fmt, localtime(&r->last_tx));
       else
          sprintf(tmp2, "Never");
+
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    last_rx: %s\t\tlast_tx: %s\n", tmp1, tmp2);
- 
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    curr_rx: %s\t\tcurr_tx: %s\n",
           ((r->listen_start > 0) ? time_to_timestr(now - r->listen_start) : "off"),
           ((r->talk_start > 0) ? time_to_timestr(now - r->talk_start) : "off"));
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %s\tholdoff:%s\tpenalty:%s\n",
-          time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff), time_to_timestr(r->penalty));
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %lu\tholdoff: %lu\tpenalty: %lu\n",
+          r->timeout_talk, r->timeout_holdoff, r->penalty);
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s\t\t\tpa_outdev: %s\n", r->pa_indev, r->pa_outdev);
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, " GPIO:  PTT: %d\tPower: %d\tSquelch: %d\n", r->pin_ptt, r->pin_power, r->pin_squelch);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, " GPIO pins:  PTT: %d\tPower: %d\tSquelch: %d\n", r->pin_ptt, r->pin_power, r->pin_squelch);
    }
    return SWITCH_STATUS_SUCCESS;
 }

@@ -479,7 +479,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
    while (!globals.alive)
       sleep(1);
 
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "hamradio interface waking up!\n");
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "hamradio interface control thread waking up!\n");
 
    // As long as we aren't shutting down, scan the radios
    while (globals.alive) {
@@ -495,7 +495,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
          if (r->penalty > 0) {
             r->penalty--;
 
-            // penalty expired
+            // penalty expired?
             if (r->penalty == 0) {
                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d penalty cleared\n", radio);
 
@@ -551,7 +551,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
             if (r->timeout_talk > 0) {
                // Has the timer expired?
                if (now >= (r->talk_start + r->timeout_talk)) {
-                  switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "radio%d ending transmission (TOT expired: %s, adding %s penalty)\n", radio, time_to_timestr(r->timeout_talk), time_to_timestr(r->timeout_holdoff));
+                  switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "radio%d ending transmission (TOT expired: %lu, adding %lu penalty)\n", radio, r->timeout_talk, r->timeout_holdoff);
 
                   // Apply a delay before allowing TX again
                   r->penalty += r->timeout_holdoff;

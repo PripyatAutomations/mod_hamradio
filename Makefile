@@ -40,3 +40,6 @@ conf-notice:
 	@echo "Don't forget to copy hamradio.conf to /etc/freeswitch and edit it, if you haven't already!"
 	@echo ""
 	@echo "Thanks for trying mod_hamradio! Please report bugs or contribute improvements via https://github.com/pripyatautomations/mod_hamradio !"
+
+install-config:
+	sudo cp hamradio.conf /etc/freeswitch
