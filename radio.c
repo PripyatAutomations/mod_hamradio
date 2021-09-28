@@ -99,8 +99,6 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
       return RADIO_ERROR;
    }
 
-//   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio_set_state(%s) called for radio%d\n", radio_status_msgs[val], radio);
-
    if (radio < 0 || radio >= globals.max_radios) {
       err_invalid_radio(radio);
       return RADIO_ERROR;
@@ -116,6 +114,10 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
 
    // Save the old status, for our informational log message below
    old_status = r->status;
+
+   // Shortcut for cases where the state hasn't changed - don't display a message, just ignore the request
+   if (old_status == val)
+      return val;
 
    // Set the new channel state
    r->status = val;
@@ -163,8 +165,25 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         break;
      case RADIO_IDLE:
         if (r->status == RADIO_TX) {
-           // XXX: Check when last IDed and pause then send a tailing identification
            if (r->talk_start > 0) {
+              // Should we send a trailing ident?
+              if ((r->last_id + globals.timeout_id) < now) {
+                 // No ID mode is not permitted on ham bands, but maybe user is IDing manually? throw a warning
+                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d set_state(Idle) should send ID as it's been %lu seconds (> %lu threshold) but ID mode is set to None! We won't ID but ham users must ID to be compliant with government regulations!", radio, (now - r->last_id), globals.timeout_id);
+
+                 switch (globals.id_type) {
+                    // Here we fall through intentionally to save duplication
+                    case ID_BOTH:
+                    case ID_VOICE:
+                       send_ids_voice(radio);
+                    case ID_CW:
+                       if (globals.id_type == ID_CW || globals.id_type == ID_BOTH)
+                          send_ids_cw(radio);
+                    case ID_NONE:
+                       break;
+                 }
+              }
+
               // record statistics about the QSO length
               qso_length = now - r->talk_start;
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was transmitting for %s...\n", radio, time_to_timestr(qso_length));
@@ -251,13 +270,6 @@ RadioStatus_t radio_get_state(const int radio) {
 void radio_ptt_on(const int radio) {
    switch_channel_t *channel;
 
-//   if (!session) {
-//      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
-//      return;
-//   }
-//   channel = switch_core_session_get_channel(session);
-//   switch_assert(channel);
-
    // Refuse to TX on disabled radio
    if (!Radios(radio).enabled) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Denying request to TX on radio%d in DISABLED state!\n", radio);
@@ -286,13 +298,6 @@ void radio_conf_ptt_off(const int radio) {
 void radio_ptt_off(const int radio) {
    switch_channel_t *channel;
 
-//   if (!session) {
-//      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
-//      return;
-//   }
-//   channel = switch_core_session_get_channel(session);
-//   switch_assert(channel);
-
    if (radio_get_state(radio) == RADIO_OFF)
       return;
 
@@ -301,13 +306,6 @@ void radio_ptt_off(const int radio) {
 
 void radio_power_on(const int radio) {
    switch_channel_t *channel;
-
-//   if (!session) {
-//      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
-//      return;
-//   }
-//   channel = switch_core_session_get_channel(session);
-//   switch_assert(channel);
 
    if (!Radios(radio).enabled) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Refusing to power on radio%d in DISABLED state. requested by app\n", radio);
@@ -320,12 +318,6 @@ void radio_power_on(const int radio) {
 
 void radio_power_off(const int radio) {
    switch_channel_t *channel;
-
-//   if (!session) {
-//      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "No session\n");
-//      return;
-//   }
-//   channel = switch_core_session_get_channel(session);
 
    switch_assert(channel);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Powering OFF radio%d by app request\n", radio);

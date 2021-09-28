@@ -25,18 +25,15 @@
 // Support for playing back saved short tone melodies
 #include "tones.h"
 
+// IDentification (CW + voice)
+#include "id.h"
+
+// Voice Activity Detection
+#include "vad.h"
+
 #define	MAX_GPIO	128		// maximum GPIO pin # (this is intentionally high)
 #define	HAMRADIO_CONF	"/etc/freeswitch/hamradio.conf" // configuration file
 
-// This will be used to keep track of the state of a channel's voice activity
-typedef enum {
-   CHAN_QUIET = 0,
-   CHAN_NOISE,
-   CHAN_VOICE,
-   CHAN_ERROR
-} chan_vad_activity;
-
-// Global data
 struct Globals {
    int alive;				// are we shutting down?
    int max_radios;			// Highest radio # allowed to be configured
@@ -50,6 +47,10 @@ struct Globals {
    dict *radio_tones;			// Radio tones
    // XXX: This needs moved when we add support for multiple GPIO chips...
    struct gpiod_chip *gpiochip;
+
+   // Auto-ID stuff
+   time_t timeout_id;			// max times between IDs
+   ID_Mode_t id_type;			// Type of ID (None, CW, Voice, or Both)
 };
 typedef struct Globals Globals_t;
 

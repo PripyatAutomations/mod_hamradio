@@ -130,6 +130,30 @@ dict *dconf_load(const char *file) {
                globals.poll_interval = 25;
                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "poll_interval (%d) is too small - using minimum value of 25 (ms)!\n", i);
             }
+         } else if (strcasecmp(key, "id_timeout") == 0) {
+            i = timestr_to_time(val, 0);
+
+            // ID timeout should always be set for ham usage, send a warning if not
+            if (i <= 0) {
+               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "id_timeout should have non-zero value for ham usage!\n");
+            } else {
+               globals.timeout_id = i;
+            }
+         } else if (strcasecmp(key, "id_type") == 0) {
+            if (strcasecmp(val, "none") == 0) {
+               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "id_type should be set to voice or cw for ham usage.\n");
+               warnings++;
+               continue;
+            } else if (strcasecmp(val, "cw") == 0) {
+               globals.id_type = ID_CW;
+            } else if (strcasecmp(val, "voice") == 0) {
+               globals.id_type = ID_VOICE;
+            } else if (strcasecmp(val, "both") == 0) {
+               globals.id_type = ID_BOTH;
+            } else {
+               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "id_type '%s' is not valid while parsing configuration\n", val);
+               errors++;
+            }
          }
 
          // free some memory up
