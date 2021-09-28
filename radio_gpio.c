@@ -19,7 +19,7 @@ int radio_gpiochip_init(const char *chipname) {
    // Locate the GPIO controller we want to talk to, by name
    if ((globals.gpiochip = gpiod_chip_open_by_name(chipname)) == NULL) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[gpio] Error opening gpiochip %s, we cannot continue.\n", chipname);
-      return SWITCH_STATUS_FALSE;
+      return SWITCH_STATUS_TERM;
    }
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[gpio] connected chip %s to interface [%p]\n", chipname, globals.gpiochip);
 

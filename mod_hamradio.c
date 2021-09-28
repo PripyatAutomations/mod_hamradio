@@ -475,6 +475,8 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
 // We need to be reasonably fast here and try to keep CPU usage
 // responsible...
 SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
+   time_t last_tick;
+
    // Wait for the main process to be ready
    while (!globals.alive)
       sleep(1);
@@ -493,7 +495,11 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
 
          // Another second has passed, reduce penalty time on this radio
          if (r->penalty > 0) {
-            r->penalty--;
+            // This should only happen once per second...
+            if (last_tick && (now - last_tick >= 1))
+               r->penalty--;
+
+            last_tick = now;
 
             // penalty expired?
             if (r->penalty == 0) {

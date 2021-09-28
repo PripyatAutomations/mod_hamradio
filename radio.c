@@ -395,7 +395,7 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
 
    if (detailed) {
       char tmp1[40], tmp2[40];	// date string buffers
-      const char date_fmt[19] = "%Y-%d-%m %H:%M:%S";
+      const char date_fmt[19] = "%Y-%m-%d %H:%M:%S";
 
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   sq. mode: %d %s\t\tinband ctcss: %s\n", r->RX_mode,
           (r->squelch_invert ? "(invert)" : ""), (r->ctcss_inband ? "true" : "false"));
