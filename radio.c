@@ -177,10 +177,10 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
                     // Here we fall through intentionally to save duplication
                     case ID_BOTH:
                     case ID_VOICE:
-                       send_ids_voice(radio);
+//                       send_ids_voice(radio);
                     case ID_CW:
-                       if (globals.id_type == ID_CW || globals.id_type == ID_BOTH)
-                          send_ids_cw(radio);
+//                       if (globals.id_type == ID_CW || globals.id_type == ID_BOTH)
+//                          send_ids_cw(radio);
                     case ID_NONE:
                        break;
                  }
