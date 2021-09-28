@@ -1,7 +1,7 @@
 #LOCALC_FLAGS=
 MODNAME = mod_hamradio.so
 MODOBJS += mod_hamradio.o dict.o config.o radio.o radio_gpio.o radio_rigctl.o tones.o
-MODOBJS += conference.o util.o channel.o id.o vox.o
+MODOBJS += conference.o util.o channel.o id.o vad.o
 MODCFLAGS = -Wall -Werror
 MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod
 
@@ -21,7 +21,7 @@ $(MODNAME): ${MODOBJS}
  
 .PHONY: clean
 clean:
-	rm -f $(MODNAME)
+	rm -f $(MODNAME) ${MODOBJS}
  
 .PHONY: install
 install: $(MODNAME)
@@ -36,4 +36,4 @@ conf-notice:
 	@echo "Thanks for trying mod_hamradio! Please report bugs or contribute improvements via https://github.com/pripyatautomations/mod_hamradio !"
 
 install-config:
-	sudo cp hamradio.conf /etc/freeswitch
+	sudo cp conf/hamradio.conf conf/*.xml /etc/freeswitch

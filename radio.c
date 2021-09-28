@@ -11,10 +11,12 @@
 //////////////////////////
 // Reduce duplication of code...
 static const char *radio_status_msgs[6] = {
- // RADIO_OFF		RADIO_IDLE	RADIO_RX
- "OFF", 		"Idle", 	"Receiving",
- // RADIO_TX		RADIO_TX_DATA	N/A
- "Transmitting", 	"TX Data", 	NULL
+ // RADIO_OFF		RADIO_IDLE
+ "OFF", 		"Idle", 
+ // RADIO_RX		// RADIO_TX
+ "Receiving",		"Transmitting",
+ // RADIO_TX_DATA	N/A
+ "TX Data", 	NULL
 };
 
 static const char *radio_get_status_str(const int radio) {
@@ -52,7 +54,7 @@ RadioStatus_t radio_enable(const int radio) {
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] enabling radio%d as requested.\n", radio);
    // Enable the radio
-   r->enabled = 1;
+   r->enabled = true;
    // Power up the radio
    radio_set_state(radio, RADIO_IDLE);
    return RADIO_IDLE;
@@ -75,7 +77,7 @@ int radio_disable(const int radio) {
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] disabling radio%d as requested.\n", radio);
    // Disable the radio
-   r->enabled = 0;
+   r->enabled = false;
    // Power down the radio
    radio_set_state(radio, RADIO_OFF);
    return RADIO_OFF;
