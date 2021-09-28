@@ -495,7 +495,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
 
          // Another second has passed, reduce penalty time on this radio
          if (r->penalty > 0) {
-            // This should only happen once per second...
+            // This should only happen once per second, make sure that's the case...
             if (last_tick && (now - last_tick >= 1))
                r->penalty--;
 
@@ -510,7 +510,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
             }
          }
 
-         // Check the GPIO squelch line here
+         // Check the GPIO squelch input line here
          if (r->gpio_squelch != NULL) {
             switch_bool_t gpio_squelch_state = false;
             sqval = radio_gpio_read_squelch(radio);
@@ -532,6 +532,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
             }
          }
 
+         // If we are in VAD mod, try to determine if this radio has activity
          if (r->RX_mode == SQUELCH_VOX) {
             // XXX: Check squelch PTT status
             // if (vad_is_voice(radio)) {
@@ -578,8 +579,10 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
 
          // XXX: Check ident timeouts
       }
-// XXX: Does this even need to be here? disabling to see...
-//      usleep(globals.poll_interval);
+
+      // This allows reducing CPU load in the polling code, if needed
+      if (globals.poll_interval > 0)
+         usleep(globals.poll_interval);
       switch_cond_next();
    }
    return SWITCH_STATUS_TERM;

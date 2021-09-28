@@ -126,9 +126,9 @@ dict *dconf_load(const char *file) {
             // Minimum poll time is 25ms
             if ((i = atoi(val)) >= 25) {
                globals.poll_interval = i;
-            } else {
-               globals.poll_interval = 25;
-               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "poll_interval (%d) is too small - using minimum value of 25 (ms)!\n", i);
+            } else if (i == 0) {
+               globals.poll_interval = 0;
+               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "poll_interval is disabled (0), set it to >= 25 to enable polling throttling, if you find CPU usage is too high when idle!\n");
             }
          } else if (strcasecmp(key, "id_timeout") == 0) {
             i = timestr_to_time(val, 0);

@@ -31,6 +31,9 @@
 // Voice Activity Detection
 #include "vad.h"
 
+// Eventing system stuff
+#include "events.h"
+
 #define	MAX_GPIO	128		// maximum GPIO pin # (this is intentionally high)
 #define	HAMRADIO_CONF	"/etc/freeswitch/hamradio.conf" // configuration file
 
