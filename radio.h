@@ -3,6 +3,11 @@
 #if	!defined(NO_LIBGPIOD)
 #include <gpiod.h>
 #endif
+#if	!defined(NO_HAMLIB)
+#include <hamlib/rig.h>
+#include <hamlib/amplifier.h>
+#include <hamlib/rotator.h>
+#endif
 
 #define	Radios(x)	(globals.Radios[x])
 #define	is_radio_enabled(x)	(Radios(x).enabled)
@@ -69,6 +74,20 @@ struct Radio {
    struct gpiod_line *gpio_power;	// Power or ignition sense output
    struct gpiod_line *gpio_ptt;		// Push To Talk output
    struct gpiod_line *gpio_squelch;	// squelch (COS or TOS) output from radio
+#endif
+
+#if	!defined(NO_HAMLIB)
+   RIG		*rig;
+   freq_t 	rig_freq;
+   rmode_t	rig_rmode;
+   pbwidth_t	rig_width;
+   vfo_t	rig_vfo;
+   int		rig_rssi;
+   int		rig_rit;
+   int		rig_xit;
+   int		rig_retcode;
+   rig_model_t	rig_model;
+   hamlib_port_t rig_port;
 #endif
 
    ////////////////

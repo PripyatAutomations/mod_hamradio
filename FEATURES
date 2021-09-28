@@ -1,0 +1,8 @@
+* = In place, - = In work, :( = Planned but a lot of work :| = In work but buggy = = Wishlist
+
+	* Power Relay control via GPIO
+	* Squelch input (COS/TOS) via GPIO
+	* PTT control via GPIO
+	* Squelch polling
+	* Time out Timer w/ penalties
+	- Rigctl control over radios from the dialplan

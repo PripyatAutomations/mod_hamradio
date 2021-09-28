@@ -5,6 +5,10 @@ MODOBJS += conference.o util.o channel.o id.o vad.o core_processing.o endpoint.o
 MODCFLAGS = -Wall -Werror
 MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod -lhamlib
 
+# uncomment these to disable features ;(
+#MODCFLAGS += -DNO_HAMLIB
+#MODCFLAGS += -DNO_LIBGPIOD
+
 CC = gcc
 CFLAGS = -fPIC -g -ggdb `pkg-config --cflags freeswitch` $(MODCFLAGS) -Wno-unused-variable
 LDFLAGS = `pkg-config --libs freeswitch` $(MODLDFLAGS)
