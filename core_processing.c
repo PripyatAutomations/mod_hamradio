@@ -30,7 +30,7 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
          if (r->penalty > 0) {
             // This should only happen once per second, make sure that's the case...
             if (last_tick && (now - last_tick >= 1))
-               r->penalty--;
+               r->penalty -= (now - last_tick);
 
             last_tick = now;
 
