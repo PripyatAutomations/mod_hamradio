@@ -22,10 +22,10 @@
 #include "radio.h"
 
 // Support for GPIO controlled (relays/optocouplers and COS/TOS inputs) radios
-#include "radio_gpio.h"
+#include "gpio.h"
 
 // Support for rigctl controlled radios (NYI)
-#include "radio_rigctl.h"
+#include "hamlib.h"
 
 // Support for playing back saved short tone melodies
 #include "tones.h"
