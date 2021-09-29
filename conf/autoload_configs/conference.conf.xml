@@ -50,4 +50,7 @@
    <param name="caller-controls" value="radio"/>
   </profile>
  </profiles>
+<!--
+   <param name="conference-flags" value="livearray-sync|livearray-json-status"/>
+-->
 </configuration>

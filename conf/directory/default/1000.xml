@@ -3,6 +3,8 @@
   <params>
    <param name="password" value="4321"/>
    <param name="vm-password" value="1000"/>
+   <param name="verto-context" value="public"/>
+   <param name="verto-dialplan" value="XML"/>
   </params>
   <variables>
    <variable name="toll_allow" value="domestic,international,local"/>
