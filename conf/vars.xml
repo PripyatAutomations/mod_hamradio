@@ -1,5 +1,5 @@
 <include>
-  <X-PRE-PROCESS cmd="set" data="domain=istabpeople.com"/>
+  <X-PRE-PROCESS cmd="set" data="domain=porkypbx"/>
   <X-PRE-PROCESS cmd="set" data="global_codec_prefs=PCMU,PCMA"/>
   <X-PRE-PROCESS cmd="set" data="xml_rpc_password=F0ZjDAk21JFPB931..q1"/>
   <X-PRE-PROCESS cmd="set" data="internal_sip_port=5060"/>

@@ -19,7 +19,7 @@ $(MODNAME): ${MODOBJS}
 	@echo "[LD] $@"
 	@$(CC) -shared -o $@ $^ $(LDFLAGS)
  
-.obj/%.o: %.c
+%.o: %.c
 	@echo "[CC] $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
  
