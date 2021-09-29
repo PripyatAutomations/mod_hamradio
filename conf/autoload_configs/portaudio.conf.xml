@@ -1,0 +1,57 @@
+<configuration name="portaudio.conf" description="Soundcard Endpoint">
+ <settings>
+  <param name="indev" value=""/>
+  <param name="outdev" value="#1"/>
+  <param name="ringdev" value="#1"/>
+  <param name="ring-interval" value="5"/>
+  <param name="no-ring-during-call" value="true"/>
+  <param name="no-auto-resume-call" value="true"/>
+  <param name="unload-on-device-fail" value="true"/>
+  <param name="live-stream-switch" value="true"/>
+ </settings>
+ <streams>
+  <stream name="radio0">
+   <param name="indev" value="USB Audio Device"/>
+   <param name="outdev" value="USB Audio Device" />
+   <param name="sample-rate" value="48000" />
+   <param name="codec-ms" value="10" />
+   <param name="channels" value="1" />
+  </stream>
+
+  <stream name="radio1">
+   <param name="indev" value="Turtle Beach USB Audio" />
+   <param name="outdev" value="Turtle Beach USB Audio" />
+   <param name="sample-rate" value="48000" />
+   <param name="codec-ms" value="10" />
+   <param name="channels" value="1" />
+  </stream>
+ </streams>
+
+ <endpoints>
+  <endpoint name="radio0">
+   <param name="instream" value="radio0:0" />
+   <param name="outstream" value="radio0:0" />
+  </endpoint>
+
+  <endpoint name="radio1">
+   <param name="instream" value="radio1:0" />
+   <param name="outstream" value="radio1:0" />
+  </endpoint>
+
+  <endpoint name="radio0-tx">
+   <param name="outstream" value="radio0:0" />
+  </endpoint>
+
+  <endpoint name="radio1-tx">
+   <param name="outstream" value="radio1:0" />
+  </endpoint>
+
+  <endpoint name="radio0-rx">
+   <param name="instream" value="radio0:0" />
+  </endpoint>
+
+  <endpoint name="radio1-rx">
+   <param name="instream" value="radio1:0" />
+  </endpoint>
+ </endpoints>
+</configuration>

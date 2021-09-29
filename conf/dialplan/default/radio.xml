@@ -1,0 +1,11 @@
+<extension name="radio_conference">
+ <condition field="destination_number" expression="^1337$"/>
+ <condition field="source" expression="mod_portaudio" break="never">
+  <action application="answer"/>
+  <action application="sleep" data="1000"/>
+  <action application="start_dtmf"/>
+ </condition>
+ <condition>
+  <action application="conference" data="radio@radio"/>
+ </condition>
+</extension>

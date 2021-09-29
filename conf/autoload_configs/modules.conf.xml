@@ -1,0 +1,61 @@
+<configuration name="modules.conf" description="Modules">
+  <modules>
+    <load module="mod_console"/>
+    <load module="mod_logfile"/>
+    <load module="mod_syslog"/>
+    <load module="mod_xml_rpc"/>
+    <load module="mod_cdr_csv"/>
+    <load module="mod_event_socket"/>
+    <load module="mod_yaml"/>
+    <load module="mod_sofia"/>
+    <load module="mod_av"/>
+    <load module="mod_blacklist"/>
+    <load module="mod_curl"/>
+    <load module="mod_loopback"/>
+<!--
+    <load module="mod_python"/>
+-->
+    <load module="mod_commands"/>
+    <load module="mod_conference"/>
+    <load module="mod_db"/>
+    <load module="mod_dptools"/>
+    <load module="mod_expr"/>
+    <load module="mod_hash"/>
+    <load module="mod_esf"/>
+    <load module="mod_enum"/>
+    <load module="mod_portaudio"/>
+    <load module="mod_portaudio_stream"/>
+    <load module="mod_dialplan_xml"/>
+    <load module="mod_amr"/>
+    <load module="mod_amrwb"/>
+    <load module="mod_cdr_sqlite"/>
+    <load module="mod_codec2"/>
+    <load module="mod_b64"/>
+    <load module="mod_dingaling"/>
+<!--    <load module="mod_fail2ban"/> -->
+    <load module="mod_flite"/>
+    <load module="mod_httapi"/>
+    <load module="mod_http_cache"/>
+    <load module="mod_format_cdr"/>
+    <load module="mod_fsk"/>
+    <load module="mod_h26x"/>
+    <load module="mod_local_stream"/>
+    <load module="mod_opus"/>
+    <load module="mod_prefix"/>
+    <load module="mod_rss"/>
+    <load module="mod_say_en"/>
+    <load module="mod_shout"/>
+    <load module="mod_rtc"/>
+    <load module="mod_shell_stream"/>
+    <load module="mod_soundtouch"/>
+    <load module="mod_spy"/>
+    <load module="mod_theora"/>
+    <load module="mod_tone_stream"/>
+    <load module="mod_verto"/>
+    <load module="mod_xml_curl"/>
+    <load module="mod_sndfile"/>
+    <load module="mod_native_file"/>
+    <load module="mod_morse"/>
+    <load module="mod_hamradio"/>
+  </modules>
+</configuration>

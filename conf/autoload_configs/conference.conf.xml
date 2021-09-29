@@ -1,0 +1,53 @@
+<configuration name="conference.conf" description="Audio Conference">
+ <advertise>
+  <room name="8500@$${subdomain}" status="FreeSwitch"/>
+ </advertise>
+ <caller-controls>
+  <group name="default">
+   <control action="vol talk dn"      digits="1"/>
+   <control action="vol talk zero"    digits="2"/>
+   <control action="vol talk up"      digits="3"/>
+   <control action="vol listen dn"    digits="4"/>
+   <control action="vol listen zero"  digits="5"/>
+   <control action="vol listen up"    digits="6"/>
+   <control action="energy dn"        digits="7"/>
+   <control action="energy equ"       digits="8"/>
+   <control action="energy up"        digits="9"/>
+   <control action="mute"             digits="0"/>
+<!--
+   <control action="deaf mute"        digits="*"/>
+   <control action="hangup"           digits="#"/>
+-->
+   <control action="execute_application" digits="*"   data="radio_ptt_on 0"/>
+   <control action="execute_application" digits="#"   data="radio_ptt_off 0"/>
+  </group>
+  <group name="radio">
+   <control action="event" digits="1"/>
+   <control action="event" digits="2"/>
+   <control action="event" digits="3"/>
+   <control action="event" digits="4"/>
+   <control action="event" digits="5"/>
+   <control action="event" digits="6"/>
+   <control action="event" digits="7"/>
+   <control action="event" digits="8"/>
+   <control action="event" digits="9"/>
+   <control action="event" digits="0"/>
+   <control action="event" digits="*"/>
+   <control action="event" digits="#"/>
+  </group>
+ </caller-controls>
+ <chat-permissions>
+  <profile name="default">
+  </profile>
+  <profile name="radio">
+   <user name="radio@istabpeople.com" commands="all"/>
+  </profile>
+ </chat-permissions>
+ <profiles>
+  <profile name="default">
+  </profile>
+  <profile name="radio">
+   <param name="caller-controls" value="radio"/>
+  </profile>
+ </profiles>
+</configuration>
