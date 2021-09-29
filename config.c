@@ -214,6 +214,18 @@ dict *dconf_load(const char *file) {
            } else {
               r->enabled = false;
            }
+         } else if (strcasecmp(key, "cat_type") == 0) {
+            if (strcasecmp(val, "hamlib") == 0) {
+            }
+         } else if (strcasecmp(key, "cat_model") == 0) {
+            if (strcasecmp(val, "probe") == 0) {
+               // Set this to -1, so when we actually bring the radio up, we can see it's supposed tobe probed
+               r->rig_model = -1;
+            } else
+               r->rig_model = atoi(val);
+         } else if (strcasecmp(key, "cat_port") == 0) {
+            memset(r->rig_path, 0, PATH_MAX);
+            strncpy(r->rig_path, val, PATH_MAX);
          } else if (strcasecmp(key, "description") == 0) {
            char *qp = NULL, *ep = NULL;
 

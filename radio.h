@@ -88,6 +88,7 @@ struct Radio {
    int		rig_retcode;
    rig_model_t	rig_model;
    hamlib_port_t rig_port;
+   char		rig_path[PATH_MAX];
 #endif
 
    ////////////////

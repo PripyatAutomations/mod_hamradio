@@ -403,6 +403,11 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    // Load config and handle reloads
    load_configuration(0);
 
+#if	!defined(NO_HAMLIB)
+   // Initialize hamlib interface
+   radio_hamlib_init();
+#endif
+
    // bind configuration reload event to our event handler
    if ((switch_event_bind(modname, SWITCH_EVENT_RELOADXML, NULL, event_handler, NULL) != SWITCH_STATUS_SUCCESS)) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Couldn't bind reloadxml handler!");
@@ -452,11 +457,15 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
       Radios(radio).enabled = 0;
    }
 
+#if	!defined(NO_LIBGPIOD)
    // close all GPIO interfaces
    radio_gpio_fini();
+#endif
 
-   // XXX: close all rigctl interfaces
-
+#if	!defined(NO_HAMLIB)
+   // XXX: close all hamlib interfaces
+   radio_hamlib_fini();
+#endif
    // Free some memory
    switch_event_unbind_callback(event_handler);
 
