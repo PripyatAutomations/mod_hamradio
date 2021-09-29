@@ -1,6 +1,11 @@
 #if	!defined(RADIO_GPIO_H)
 #define	RADIO_GPIO_H
 
+struct GPIO_pin {
+    int	gpiochip;	// index into GPIOchips array
+};
+typedef struct GPIO_pin GPIOpin;
+
 /////////////////
 /// prototypes //
 /////////////////

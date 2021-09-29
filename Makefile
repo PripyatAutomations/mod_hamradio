@@ -41,3 +41,14 @@ conf-notice:
 
 install-config:
 	sudo cp conf/hamradio.conf conf/*.xml /etc/freeswitch
+
+hostconf-save:
+	diff -uNr conf/ /etc/freeswitch/ > config.save.$(shell date +"%Y%m%d_%H%M%S").diff
+	sudo rsync -avx /etc/freeswitch/ conf/
+
+hostconf-load:
+	diff -uNr /etc/freeswitch/ conf/ > config.save.$(shell date +"%Y%m%d_%H%M%S").diff
+	sudo rsync -avx conf/ /etc/freeswitch
+
+distclean: clean
+	${RM} *.diff

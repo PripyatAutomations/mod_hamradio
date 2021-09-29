@@ -54,3 +54,7 @@ switch_status_t radio_hamlib_init(void) {
 
     return SWITCH_STATUS_SUCCESS;
 }
+
+switch_status_t radio_hamlib_fini(void) {
+    return SWITCH_STATUS_SUCCESS;
+}

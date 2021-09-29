@@ -2,6 +2,12 @@
 #include <gpiod.h>
 #include "mod_hamradio.h"
 
+///////////////////////
+// gpiochips support //
+///////////////////////
+// XXX: Belongs in globals
+const int max_gpuchips = 8;
+
 // right now we only support one gpio chip, but this wrapper should ease transition
 struct gpiod_chip *radio_find_gpiochip(const char *name) {
    return globals.gpiochip;
