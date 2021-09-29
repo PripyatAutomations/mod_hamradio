@@ -1,0 +1,7 @@
+<configuration name="codec2.conf" description="Core Configuration">
+ <settings>
+  <param name="mode" value="2400"/>
+ </settings>
+ <variables>
+ </variables>
+</configuration>

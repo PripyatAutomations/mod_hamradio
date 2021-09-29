@@ -1,17 +1,19 @@
 <configuration name="switch.conf" description="Core Configuration">
-  <settings>
-    <param name="colorize-console" value="true"/>
-
-    <!-- Max number of sessions to allow at any given time -->
-    <param name="max-sessions" value="1000"/>
-    <!--Most channels to create per second -->
-    <param name="sessions-per-second" value="30"/>
-
-    <!-- Default Global Log Level - value is one of debug,info,notice,warning,err,crit,alert -->
-    <param name="loglevel" value="debug"/>
-
-    <!-- RTP port range -->
-    <param name="rtp-start-port" value="16384"/>
-    <param name="rtp-end-port" value="32768"/>
-  </settings>
+ <settings>
+  <param name="colorize-console" value="true"/>
+  <param name="max-sessions" value="100"/>
+  <param name="sessions-per-second" value="15"/>
+  <!-- Default Global Log Level - value is one of debug,info,notice,warning,err,crit,alert -->
+  <param name="loglevel" value="debug"/>
+  <param name="rtp-start-port" value="16384"/>
+  <param name="rtp-end-port" value="32768"/>
+  <param name="dialplan-timestamps" value="true"/>
+  <param name="max-db-handles" value="50"/>
+  <param name="db-handle-timeout" value="10"/>
+ </settings>
+ <variables>
+  <variable name="uk-ring" value="%(400,200,400,450);%(400,2200,400,450)"/>
+  <variable name="us-ring" value="%(2000, 4000, 440.0, 480.0)"/>
+  <variable name="bong-ring" value="v=4000;>=0;+=2;#(60,0);v=2000;%(940,0,350,440)"/>
+ </variables>
 </configuration>

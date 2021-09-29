@@ -39,15 +39,14 @@ conf-notice:
 	@echo ""
 	@echo "Thanks for trying mod_hamradio! Please report bugs or contribute improvements via https://github.com/pripyatautomations/mod_hamradio !"
 
-install-config:
-	sudo cp conf/hamradio.conf conf/*.xml /etc/freeswitch
+install-config: hostconf-load
 
 hostconf-save:
-	diff -uNr conf/ /etc/freeswitch/ > config.save.$(shell date +"%Y%m%d_%H%M%S").diff
+	diff -uNr conf/ /etc/freeswitch/ > config.save.$$(date +"%Y%m%d_%H%M%S").diff
 	sudo rsync -avx /etc/freeswitch/ conf/
 
 hostconf-load:
-	diff -uNr /etc/freeswitch/ conf/ > config.save.$(shell date +"%Y%m%d_%H%M%S").diff
+	diff -uNr /etc/freeswitch/ conf/ > config.save.$$(date +"%Y%m%d_%H%M%S").diff
 	sudo rsync -avx conf/ /etc/freeswitch
 
 distclean: clean

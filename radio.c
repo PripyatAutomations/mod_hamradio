@@ -408,8 +408,10 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
       else
          sprintf(tmp2, "Never");
 
+      time_t curr_rx = ((r->listen_start > 0) ? (now - r->listen_start) : 0);
+      time_t curr_tx = ((r->talk_start > 0) ? (now - r->talk_start) : 0);
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    last_rx: %s\t\tlast_tx: %s\n", tmp1, tmp2);
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    curr_rx: %lu s\t\tcurr_tx: %lu s\n", (now - r->listen_start), r->talk_start);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "    curr_rx: %lu s\t\tcurr_tx: %lu s\n", curr_rx, r->talk_start);
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "        tot: %lu\tholdoff: %lu\tpenalty: %lu\n",
           r->timeout_talk, r->timeout_holdoff, r->penalty);
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "   pa_indev: %s\t\t\tpa_outdev: %s\n", r->pa_indev, r->pa_outdev);
