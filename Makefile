@@ -3,7 +3,7 @@ MODNAME = mod_hamradio.so
 MODOBJS += mod_hamradio.o dict.o config.o radio.o gpio.o hamlib.o tones.o
 MODOBJS += conference.o channel.o id.o vad.o radio_core.o endpoint.o events.o
 MODCFLAGS = -Wall -Werror
-MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod -lhamlib
+MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod -lhamlib -lbsd
 
 # uncomment these to disable features ;(
 #MODCFLAGS += -DNO_HAMLIB

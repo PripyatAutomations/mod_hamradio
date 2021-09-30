@@ -45,19 +45,20 @@ struct Radio {
    ///////////////////
    // configuration //
    ///////////////////
-   int		enabled;		// Is channel enabled?
+   switch_bool_t		enabled;		// Is channel enabled?
+   switch_bool_t		tx_allowed;		// is transmitting allowed?
    char		description[250];	// Describe the interface
    RadioRXMode_t RX_mode;		// How do we decide this radio is hearing something that should be relayed?
    time_t	timeout_talk;		// How long do we allow someone to talk before stopping TX?
    time_t	timeout_holdoff;	// How long do we punish triggering the TOT?
-   int 		ctcss_inband;		// Does radio pass CTCSS tones?
-   int 		squelch_invert;		// Is squelch inpout inverted?
+   switch_bool_t 		ctcss_inband;		// Does radio pass CTCSS tones?
+   switch_bool_t 		squelch_invert;		// Is squelch inpout inverted?
 
    // GPIO pins
    int		pin_power;		// Power or ignition sense relay output
-   int		pin_power_invert;	// invert power gpio?
+   switch_bool_t		pin_power_invert;	// invert power gpio?
    int		pin_ptt;		// Push to Talk output
-   int		pin_ptt_invert;		// invert ptt gpio?
+   switch_bool_t		pin_ptt_invert;		// invert ptt gpio?
    int		pin_squelch;		// Squelch input from radio (optional voltage divider or optocoupler)
 
    // mod_portaudio devices to provide the audio channel

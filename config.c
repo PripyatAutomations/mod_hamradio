@@ -199,9 +199,12 @@ dict *dconf_load(const char *file) {
          }
 
          if (radio_id_s != NULL) {
-//            radio = strtoi(radio_id_s, NULL, 0, 10, 0, NULL);
             radio = atoi(radio_id_s);
+         } else {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Radio configuration has invalid [radioX] section (parsing %s:%d)\n", file, line);
          }
+
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "configuring radio%d\n", radio);
 
          if (radio < 0 || radio > globals.max_radios) {
            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Radio configuration [%s] section ignored since general:radios is only set to %d! (parsing %s:%d)\n", section, globals.max_radios, file, line);
@@ -212,8 +215,7 @@ dict *dconf_load(const char *file) {
          if (globals.Radios == NULL)
             globals.Radios = malloc(sizeof(Radio_t) * globals.max_radios);
 
-         r = &Radios(radio);
-         if (r == NULL) {
+         if ((r = &Radios(radio)) == NULL) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "error bringing up radio%d - couldn't find memory structure!\n", radio);
             continue;
          }
@@ -222,7 +224,7 @@ dict *dconf_load(const char *file) {
          key = strndup(skip, (sep - skip));
          val = strndup(sep + 1, strlen(sep + 1));
 
-//         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[cfg:radio%d] setting %s - %s. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[cfg:radio%d] setting %s - %s. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
 
          if (strcasecmp(key, "enabled") == 0) {
            if (!strcasecmp(val, "true") || !strcasecmp(val, "yes") || !strcasecmp(val, "on")) {
