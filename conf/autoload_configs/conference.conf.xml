@@ -1,6 +1,9 @@
 <configuration name="conference.conf" description="Audio Conference">
  <advertise>
-  <room name="8500@$${subdomain}" status="FreeSwitch"/>
+  <room name="8500@$${subdomain}" status="2M radio"/>
+  <room name="8501@$${subdomain}" status="2M radio #2"/>
+  <room name="8502@$${subdomain}" status="6M radio"/>
+  <room name="8503@$${subdomain}" status="HF radio"/>
  </advertise>
  <caller-controls>
   <group name="default">
@@ -38,16 +41,29 @@
  </caller-controls>
  <chat-permissions>
   <profile name="default">
+   <user name="radio@porkypbx" commands="all"/>
+   <user name="joseph@porkypbx" commands="all"/>
   </profile>
   <profile name="radio">
-   <user name="radio@istabpeople.com" commands="all"/>
+   <user name="radio@porkypbx" commands="all"/>
+   <user name="joseph@porkypbx" commands="all"/>
   </profile>
  </chat-permissions>
  <profiles>
   <profile name="default">
+   <param name="caller-controls" value="radio"/>
+   <param name="chat-permissions" value="default"/>
+   <param name="announce-count" value="0"/>
+   <param name="auto-gain-level" value="true"/>
+   <param name="channels" value="1"/>
+   <param name="comfort-noise" value="true"/>
+   <param name="max-members" value="50"/>
+   <param name="member-flags" value="nomoh"/>
+   <param name="rate" value="8000"/>
   </profile>
   <profile name="radio">
    <param name="caller-controls" value="radio"/>
+   <param name="chat-permissions" value="default"/>
   </profile>
  </profiles>
 <!--

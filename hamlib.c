@@ -23,13 +23,12 @@ switch_status_t radio_hamlib_init_radio(const int radio) {
        return SWITCH_STATUS_SUCCESS;
     }    
 
-//    if (!(r->rig = rig_init(r->rig_model) != RIG_OK)) {
-//    if (rig_init(r->rig) != RIG_OK) {
-    if (0) {
+    if ((r->rig = rig_init(r->rig_model)) == NULL) {
        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio%d connecting to hamlib failed (model: %d)\n", radio, r->rig_model);
        return SWITCH_STATUS_FALSE;
     }
-    
+
+    // XXX: We need to parse hamlib configuration URL
     r->rig_port.type.rig = RIG_PORT_SERIAL;
     r->rig_port.parm.serial.rate = 9600;
     r->rig_port.parm.serial.data_bits = 8;
@@ -40,8 +39,8 @@ switch_status_t radio_hamlib_init_radio(const int radio) {
     strncpy(r->rig->state.rigport.pathname, r->rig_path, PATH_MAX);
 
     if ((rc = rig_open(r->rig)) != RIG_OK) {
-       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio%d connecting to hamlib returned %s\n", radio, rigerror(rc)); return
-       SWITCH_STATUS_FALSE;
+       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio%d connecting to hamlib returned %s\n", radio, rigerror(rc));
+       return SWITCH_STATUS_FALSE;
     }
 
     switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "radio%d connecting to hamlib succeeded.\n", radio);

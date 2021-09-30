@@ -36,10 +36,13 @@
 // Voice Activity Detection
 #include "vad.h"
 
+#include "conference.h"
+
 #define	MAX_GPIO	128		// maximum GPIO pin # (this is intentionally high)
 #define	HAMRADIO_CONF	"/etc/freeswitch/hamradio.conf" // configuration file
 
 struct Globals {
+   char *modname;
    int alive;				// are we shutting down?
    int max_radios;			// Highest radio # allowed to be configured
    int max_conferences;			// Maximum allowed concurrent conferences
@@ -65,9 +68,7 @@ extern Globals_t globals;		// in mod_hamradio.c
 // Prototypes //
 ////////////////
 // Configuration file
-extern switch_status_t load_configuration(switch_bool_t reload);
-extern switch_time_t timestr_to_time(const char *str, const switch_time_t def);
-extern char *time_to_timestr(switch_time_t itime);
+extern switch_status_t radio_load_configuration(switch_bool_t reload);
 
 static inline int str_to_intbool(const char *str) {
    if (!strcasecmp(str, "ON") || !strcasecmp(str, "TRUE") || !strcasecmp(str, "1")) {

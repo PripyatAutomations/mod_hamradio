@@ -188,7 +188,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
 
               // record statistics about the QSO length
               qso_length = now - r->talk_start;
-              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was transmitting for %s...\n", radio, time_to_timestr(qso_length));
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was transmitting for %lu s...\n", radio, qso_length);
               // save the total time transmitted
               r->total_tx += qso_length;
            }
@@ -200,7 +200,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         if (r->status == RADIO_RX) {
            if (r->listen_start > 0) {
               qso_length = now - r->listen_start;
-              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was receiving for %s...\n", radio, time_to_timestr(qso_length));
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was receiving for %lu s...\n", radio, qso_length);
               r->total_rx += qso_length;
            }
            // save last time received
@@ -351,7 +351,7 @@ void radio_print_status(switch_stream_handle_t *stream, const int radio) {
          break;
       // Any normal state of the radio is handled here
       case RADIO_BLOCKED:
-         stream->write_function(stream, "Blocked due to TOT exceeded. Penalty remaining: %s\n", time_to_timestr(r->penalty));
+         stream->write_function(stream, "Blocked due to TOT exceeded. Penalty remaining: %lu s\n", r->penalty);
       case RADIO_OFF:
       case RADIO_IDLE:
       case RADIO_RX:

@@ -266,7 +266,7 @@ SWITCH_STANDARD_API(hamradio_function) {
       }
       goto done;
    } else if (!strcasecmp(argv[0], "reload")) {
-      load_configuration(1);
+      radio_load_configuration(1);
    } else if (!strcasecmp(argv[0], "status")) {
       int active_radios = 0;
       
@@ -306,13 +306,13 @@ done:
 ////////////////////////
 // Configuration Load //
 ////////////////////////
-switch_status_t load_configuration(switch_bool_t reload) {
+switch_status_t radio_load_configuration(switch_bool_t reload) {
    switch_status_t status = SWITCH_STATUS_FALSE;
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] %sloading configuration from hamradio.conf\n", (reload ? "re" : ""));
 
    if (globals.mutex == NULL) { 
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "load_configuration - mutex not initialized, failing!\n");
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio_load_configuration - mutex not initialized, failing!\n");
       return SWITCH_STATUS_FALSE;
    }
 
@@ -366,13 +366,6 @@ switch_status_t load_configuration(switch_bool_t reload) {
    return status;
 }
 
-static void event_handler(switch_event_t *event) {
-   // Module reload
-   if (event->event_id == SWITCH_EVENT_RELOADXML) {
-      load_configuration(true);
-   }
-}
-
 static void channel_cb(switch_core_session_t *session, switch_channel_callstate_t callstate, switch_device_record_t *drec) {
    switch_channel_t *channel = switch_core_session_get_channel(session);
 
@@ -394,24 +387,26 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    // Zero out the configuration structure, such as radio data
    memset(&globals, 0, sizeof(globals));
 
+   globals.modname = strdup(modname);
+
    // Initialize our mutexes
    switch_mutex_init(&globals.mutex, SWITCH_MUTEX_UNNESTED, pool);
 
    // Update some essential pointers:
    globals.pool = pool;
 
-   // Load config and handle reloads
-   load_configuration(0);
+   // Load config
+   radio_load_configuration(0);
+
+   // Add our event hooks
+   radio_events_init();
 
 #if	!defined(NO_HAMLIB)
    // Initialize hamlib interface
    radio_hamlib_init();
 #endif
 
-   // bind configuration reload event to our event handler
-   if ((switch_event_bind(modname, SWITCH_EVENT_RELOADXML, NULL, event_handler, NULL) != SWITCH_STATUS_SUCCESS)) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Couldn't bind reloadxml handler!");
-   }
+   radio_conference_init();
 
    // Define our CLI interface
    SWITCH_ADD_API(api_interface, "hamradio", "hamradio channel controls", hamradio_function, "shows status");	
@@ -467,9 +462,10 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
    radio_hamlib_fini();
 #endif
    // Free some memory
-   switch_event_unbind_callback(event_handler);
+   radio_events_fini();
 
    // Clear our memory before it's returned to freeswitch for reuse...
+   free(globals.modname);
    memset(&globals, 0, sizeof(globals));
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Goodbye from mod_hamradio, have a great day! We hope to see you back soon!\n");

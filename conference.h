@@ -9,4 +9,6 @@ struct	Conference {
     u_int8_t	radios;		// bitmask of radios in the conference
 };
 
+extern int radio_conference_init(void);
+
 #endif	// !defined(CONFERENCE_H)

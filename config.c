@@ -131,7 +131,7 @@ dict *dconf_load(const char *file) {
                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "poll_interval is disabled (0), set it to >= 25 to enable polling throttling, if you find CPU usage is too high when idle!\n");
             }
          } else if (strcasecmp(key, "id_timeout") == 0) {
-            i = timestr_to_time(val, 0);
+            i = atoi(val);
 
             // ID timeout should always be set for ham usage, send a warning if not
             if (i <= 0) {
@@ -175,6 +175,18 @@ dict *dconf_load(const char *file) {
          }
          free(key);
          free(val);
+      } else if (strcasecmp(section, "tones") == 0) {
+         char *sep = strchr(skip, '=');
+         // make sure you free this!
+         key = strndup(skip, (sep - skip));
+         val = strndup(sep + 1, strlen(sep + 1));
+
+         // Store value in the dictionary (globals.tones)
+         dict_add(globals.radio_tones, key, val);
+
+         // Add to dictionary
+         free(key);
+         free(val);
       } else if (strncasecmp(section, "radio", 5) == 0) {
          int radio = -1;
          char *radio_id_s = section + 5;
@@ -201,6 +213,10 @@ dict *dconf_load(const char *file) {
             globals.Radios = malloc(sizeof(Radio_t) * globals.max_radios);
 
          r = &Radios(radio);
+         if (r == NULL) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "error bringing up radio%d - couldn't find memory structure!\n", radio);
+            continue;
+         }
 
          // make sure you free this!
          key = strndup(skip, (sep - skip));
@@ -334,10 +350,10 @@ dict *dconf_load(const char *file) {
            }
          } else if (strcasecmp(key, "timeout_talk") == 0) {
            int new_tot = 0;
-           new_tot = timestr_to_time(val, 0);
+           new_tot = atoi(val);
 
            if (new_tot > 0) {
-              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[%s] Set timeout_talk to %s\n", section, time_to_timestr(new_tot));
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[%s] Set timeout_talk to %d\n", section, new_tot);
               r->timeout_talk = new_tot;
            } else {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[%s] Invalid timeout_talk value '%s' parsing '%s' at %s:%d\n", section, val, buf, file, line);
@@ -345,10 +361,10 @@ dict *dconf_load(const char *file) {
            }
          } else if (strcasecmp(key, "timeout_holdoff") == 0) {
            int new_holdoff = 0;
-           new_holdoff = timestr_to_time(val, 0);
+           new_holdoff = atoi(val);
 
            if (new_holdoff > 0) {
-              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[%s] Set timeout_holdoff to %s\n", section, time_to_timestr(new_holdoff));
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[%s] Set timeout_holdoff to %d\n", section, new_holdoff);
               r->timeout_holdoff = new_holdoff;
            } else {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[%s] Invalid timeout_penalty value '%s' parsing '%s' at %s:%d\n", section, val, buf, file, line);
@@ -412,10 +428,6 @@ char       *dconf_get_str(const char *key, const char *def) {
       return NULL;
 
    return (char *)dict_get(_CONF_DICT, key, def);
-}
-
-switch_time_t dconf_get_time(const char *key, const switch_time_t def) {
-   return (timestr_to_time(dconf_get_str(key, NULL), def));
 }
 
 int dconf_set(const char *key, const char *val) {
