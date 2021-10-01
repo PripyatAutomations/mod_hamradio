@@ -1,7 +1,13 @@
-#LOCALC_FLAGS=
 MODNAME = mod_hamradio.so
-MODOBJS += mod_hamradio.o dict.o config.o radio.o radio_gpio.o hamlib.o radio_tones.o radio_tts.o
-MODOBJS += radio_conf.o radio_channel.o radio_id.o radio_vad.o radio_core.o radio_endpoint.o radio_events.o
+
+MODOBJS += mod_hamradio.o
+MODOBJS += dict.o hamlib.o
+MODOBJS += radio.o radio_gpio.o
+MODOBJS += radio_tones.o radio_tts.o
+MODOBJS += radio_conf.o radio_channel.o
+MODOBJS += radio_id.o radio_vad.o
+MODOBJS += radio_core.o radio_endpoint.o
+MODOBJS += radio_events.o radio_cfg.o
 MODCFLAGS = -Wall -Werror
 MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod -lhamlib -lbsd
 
@@ -19,7 +25,7 @@ $(MODNAME): ${MODOBJS}
 	@echo "[LD] $@"
 	@$(CC) -shared -o $@ $^ $(LDFLAGS)
  
-%.o: %.c
+%.o: %.c $(wildcard *.h)
 	@echo "[CC] $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
  
@@ -42,11 +48,11 @@ conf-notice:
 install-config: hostconf-load
 
 hostconf-save:
-	diff -uNr conf/ /etc/freeswitch/ > config.save.$$(date +"%Y%m%d_%H%M%S").diff
+	-diff -uNr conf/ /etc/freeswitch/ > config.save.$$(date +"%Y%m%d_%H%M%S").diff
 	sudo rsync -avx /etc/freeswitch/ conf/
 
 hostconf-load:
-	diff -uNr /etc/freeswitch/ conf/ > config.save.$$(date +"%Y%m%d_%H%M%S").diff
+	-diff -uNr /etc/freeswitch/ conf/ > config.save.$$(date +"%Y%m%d_%H%M%S").diff
 	sudo rsync -avx conf/ /etc/freeswitch
 
 distclean: clean
