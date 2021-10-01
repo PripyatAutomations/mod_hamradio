@@ -21,7 +21,7 @@
 #include "dict.h"
 
 // ini-style configuration support (yes, i know fs has its own...)
-#include "config.h"
+#include "radio_cfg.h"
 
 // Common to all radios
 #include "radio.h"
