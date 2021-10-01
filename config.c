@@ -367,6 +367,11 @@ dict *dconf_load(const char *file) {
               r->RX_mode = SQUELCH_VOX;
            } else
               r->RX_mode = SQUELCH_MANUAL;
+         } else if (strcasecmp(key, "squelch_min") == 0) {
+             int i = atoi(val);
+
+             if (i > 0)
+                r->squelch_min = i;
          } else if (strcasecmp(key, "squelch_invert") == 0) {
            if (!strcasecmp(val, "true") || !strcasecmp(val, "yes") || !strcasecmp(val, "on")) {
               r->squelch_invert = true;

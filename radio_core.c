@@ -57,7 +57,13 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
 
             // Handle inverting the signal, if needed for this radio
             if (r->squelch_invert) {
-               // XXX
+               if (sqval < r->squelch_min) {
+                  squelch_state = false;
+               }
+            } else {
+               if (sqval > r->squelch_min) {
+                  squelch_state = true;
+               }
             }
 
             // There is received activity
