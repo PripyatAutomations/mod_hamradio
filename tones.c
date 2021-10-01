@@ -15,6 +15,13 @@ int radio_tones_init(void) {
     return SWITCH_STATUS_SUCCESS;
 }
 
+void radio_tones_fini(void) {
+   if (globals.radio_tones != NULL)
+      dict_free(globals.radio_tones);
+
+   globals.radio_tones = NULL;
+}
+
 // Play Nokia-encoded tones into the radio
 int radio_send_tones(const int radio, const char *tone) {
     const char *tone_str = NULL;	// the retrieved data

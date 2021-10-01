@@ -3,6 +3,7 @@
 
 extern dict *radio_tones;
 extern int radio_tones_init(void);
+extern void radio_tones_fini(void);
 extern int radio_send_tones(const int radio, const char *tone);
 extern int radio_tone_store(const char *tone, const char *data);
 
