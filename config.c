@@ -282,7 +282,7 @@ dict *dconf_load(const char *file) {
                    memcpy(r->description, qp + 1, (ep - qp) - 2);
                 } else {
                    // cry that string is too big and truncate it...
-                   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio%d] description too long (%lu bytes) and was truncated to %lu bytes!\n", radio, strlen(val), sizeof(r->description));
+                   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio%d] description too long (%lu bytes) and was truncated to %lu bytes!\n", radio, strlen(val), sizeof(r->description) - 1);
                    memcpy(r->description, qp + 1, sizeof(r->description) - 1);
                 }
               }
@@ -291,7 +291,7 @@ dict *dconf_load(const char *file) {
                  memcpy(r->description, val, strlen(val));
               } else {
                  // cry that the string is too big and truncate it...
-                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio%d] description too long (%lu bytes) and was truncated to %lu bytes!\n", radio, strlen(val), sizeof(r->description));
+                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[radio%d] description too long (%lu bytes) and was truncated to %lu bytes!\n", radio, strlen(val), sizeof(r->description) - 1);
                  memcpy(r->description, val, sizeof(r->description) - 1);
               }
            }
@@ -414,6 +414,9 @@ dict *dconf_load(const char *file) {
    return cp;
 }
 
+///////////////////////////////////////////////////////////////////////////
+// Functions for accessing dictionary contents, in the desired data type //
+///////////////////////////////////////////////////////////////////////////
 int dconf_get_bool(const char *key, const int def) {
    char       *tmp;
    int         rv = 0;

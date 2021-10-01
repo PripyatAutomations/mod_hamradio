@@ -7,6 +7,9 @@
 #include <time.h>
 #include <stdlib.h>
 
+// our logging facility
+#include "logging.h"
+
 // freeswitch stuff
 #include "channel.h"
 #include "events.h"
