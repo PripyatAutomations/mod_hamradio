@@ -1,14 +1,14 @@
 /*
- * mod_hamradio.c: A simple Raspberry Pi GPIO control for GPIOs
+ * mod_hamradio.c:
  *
- *	We use this to control PTT and POWERON relays for our radios.
+ *	An interface for hooking FreeSWITCH to hamradio equipment.
  *
- * We hijack some of VAD (voice activity detection) code from elsewhere
- * to allow us to only raise PTT when there is meaningful voice traffic
- * to send.
+ *   This code was originally made to use a Raspberry Pi for this, but
+ * any GPIO interace could in theory be used.
  *
- * Eventually we hope to add more, such as a means of using COS/TOS
- * (carrier and tone operated squelch) modes.
+ *   I have broken up most of the code into smaller bits to help keep it maintainable
+ * Feel free to contribute patches and bugfixes. Particularly areas of using FreeSWITCH
+ * APIs rather than libc (for strings, memory, etc) - this is in work for 1.0.0 release
  *
  * Created by rustytaco. No warranties. If it breaks, you get to keep the pieces.
  *
@@ -269,16 +269,22 @@ SWITCH_STANDARD_API(hamradio_function) {
       radio_load_configuration(1);
    } else if (!strcasecmp(argv[0], "status")) {
       int active_radios = 0;
+      switch_bool_t full = 0;
       
-      if (argc == 1) {
+      if (argc == 1)
+         full = false;
+      else
+         full = true;
+
+      // This is a little gross, but reduces duplication...
+      if (argc == 1 || (argc == 2 && (strcasecmp(argv[1], "all") == 0))) {
          stream->write_function(stream, "*** Status for ALL radios ***\n");
          for (int i = 0; i < globals.max_radios; i++) {
             enum RadioStatus rs = radio_get_state(i);
 
 	    if (rs > RADIO_OFF)
 	       active_radios++;
-
-            radio_dump_state_var(i, false);
+            radio_dump_state_var(i, full);
          }
          stream->write_function(stream, "*** (%d/%d units active) ***\n", active_radios, globals.max_radios);
       } else if (argc == 2) {

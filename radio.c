@@ -1,7 +1,8 @@
 /*
  * mod_hamradio/radio.c
  *
- * Here we handle the radio control logics
+ * Radio control logic, providing abstration around hamlib and GPIO interfaces
+ *
  */
 #include <switch.h>
 #include "mod_hamradio.h"

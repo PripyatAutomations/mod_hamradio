@@ -1,3 +1,9 @@
+/*
+ * libgpiod support for PTT, Power control, and Squelch inputs
+ *
+ * Here we try to provide support for multiple GPIO chips with lines attached
+ * to them. We support this by using chip:pin syntax in the configuration.
+ */
 #include <switch.h>
 #include <gpiod.h>
 #include "mod_hamradio.h"

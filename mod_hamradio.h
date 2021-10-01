@@ -32,6 +32,7 @@
 
 // IDentification (CW + voice)
 #include "id.h"
+#include "tts.h"
 
 // Voice Activity Detection
 #include "vad.h"
@@ -40,6 +41,13 @@
 
 #define	MAX_GPIO	128		// maximum GPIO pin # (this is intentionally high)
 #define	HAMRADIO_CONF	"/etc/freeswitch/hamradio.conf" // configuration file
+
+struct RadioEvent {
+   switch_event_types_t event_type;
+   char *event_subclass;
+   void (*event_handler)(switch_event_t *evt);
+};
+typedef struct RadioEvent RadioEvent_t;
 
 struct Globals {
    char *modname;

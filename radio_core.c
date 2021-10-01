@@ -1,3 +1,9 @@
+/*
+ * FreeSWITCH core processing (main thread)
+ *
+ * Here we handle tasks that must be completed on a periodic basis
+ * such as polling PTTs and squelches. Try to keep code here lean.
+ */
 #include "mod_hamradio.h"
 
 ///////////////////////////////////////

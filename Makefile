@@ -1,6 +1,6 @@
 #LOCALC_FLAGS=
 MODNAME = mod_hamradio.so
-MODOBJS += mod_hamradio.o dict.o config.o radio.o gpio.o hamlib.o tones.o
+MODOBJS += mod_hamradio.o dict.o config.o radio.o gpio.o hamlib.o tones.o tts.o
 MODOBJS += conference.o channel.o id.o vad.o radio_core.o endpoint.o events.o
 MODCFLAGS = -Wall -Werror
 MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod -lhamlib -lbsd

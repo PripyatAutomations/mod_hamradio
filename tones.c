@@ -1,3 +1,8 @@
+/*
+ * Support for storing and playing back TGML tones
+ *
+ * These come from the [tones] section of hamradio.conf
+ */
 #include <switch.h>
 #include "mod_hamradio.h"
 

@@ -1,7 +1,9 @@
 /*
- * dictionary based configuration files (ini style) support
+ * Our terrible configuration parser.
  *
- * This code wouldn't be possible without N. Devillard's dictionary.[ch]
+ * This needs a major overhaul, but works well enough so long as the config file is valid...
+ *
+ * The dictionary based (general) part wouldn't be possible without N. Devillard's dictionary.[ch]
  * See dict.[ch] for slightly modified version of his code or search google for original
  */
 #include <stdarg.h>
@@ -29,7 +31,6 @@ dict *dconf_load(const char *file) {
       return false;
    }
 
-   // This could use some cleanup... But it does work.
    // We need to use safer string functions...
    do {
       memset(buf, 0, sizeof(buf));
@@ -52,7 +53,7 @@ dict *dconf_load(const char *file) {
       if ((end - skip) <= 0)
          continue;
 
-
+      // handle comments
       if (skip[0] == '*' && skip[1] == '/') {
          in_comment = 0;               /* end of block comment */
          continue;
@@ -96,7 +97,13 @@ dict *dconf_load(const char *file) {
          continue;
       }
 
-      // Handle configuration sections
+      ///////////////////////////////////
+      // Handle configuration sections //
+      ///////////////////////////////////
+
+      ////////////////////////////////////
+      // General Settings (dict backed) //
+      ////////////////////////////////////
       if (strcasecmp(section, "general") == 0) {
          char *sep = strchr(skip, '=');
 
@@ -104,13 +111,17 @@ dict *dconf_load(const char *file) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Radio configuration [%s] invalid key '%s' missing separator (=) (parsing %s:%d)\n", section, skip, file, line);
             continue;
          }
-         // make sure you free this!
+
+         // make sure you free this before returning/continuing!
          key = strndup(skip, (sep - skip));
          val = strndup(sep + 1, strlen(sep + 1));
 
          // Store value in the dictionary (globals.cfg)
          dict_add(cp, key, val);
 
+         /////////////////////////////////////////
+         // Scan dict config and update globals //
+         /////////////////////////////////////////
          // Here we scan the dict for changed configurations that need refreshed in the globals struct (stuff that doesnt change except at reload but is polled often)
          int i;
 
@@ -159,6 +170,10 @@ dict *dconf_load(const char *file) {
          // free some memory up
          free(key);
          free(val);
+
+      /////////////////
+      // Conferences //
+      /////////////////
       } else if (strncasecmp(section, "conference", 10) == 0) {
          char *sep = strchr(skip, '=');
          // make sure you free this!
@@ -175,6 +190,10 @@ dict *dconf_load(const char *file) {
          }
          free(key);
          free(val);
+
+      //////////////
+      // Tonesets //
+      //////////////
       } else if (strcasecmp(section, "tones") == 0) {
          char *sep = strchr(skip, '=');
          // make sure you free this!
@@ -187,6 +206,10 @@ dict *dconf_load(const char *file) {
          // Add to dictionary
          free(key);
          free(val);
+
+      //////////////////////
+      // Radio Interfaces //
+      //////////////////////
       } else if (strncasecmp(section, "radio", 5) == 0) {
          int radio = -1;
          char *radio_id_s = section + 5;

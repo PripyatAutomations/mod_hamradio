@@ -1,5 +1,9 @@
 /*
  * hamlib.c: An interface to hamlib connected radios such as uBITX ;)
+ *
+ * API hooks are provided to control the following functions:
+ *	VFO frequency
+ *	Modulation mode
  */
 #include <switch.h>
 #include <hamlib/rig.h>
