@@ -11,9 +11,11 @@
 #include "logging.h"
 
 // freeswitch stuff
-#include "channel.h"
-#include "events.h"
-#include "endpoint.h"
+#include "radio_channel.h"
+#include "radio_events.h"
+#include "radio_endpoint.h"
+// conferences
+#include "radio_conf.h"
 
 // (dict)ionary data type like other languages have
 #include "dict.h"
@@ -25,22 +27,21 @@
 #include "radio.h"
 
 // Support for GPIO controlled (relays/optocouplers and COS/TOS inputs) radios
-#include "gpio.h"
+#include "radio_gpio.h"
 
 // Support for rigctl controlled radios (NYI)
 #include "hamlib.h"
 
 // Support for playing back saved short tone melodies
-#include "tones.h"
+#include "radio_tones.h"
 
 // IDentification (CW + voice)
-#include "id.h"
-#include "tts.h"
+#include "radio_id.h"
+#include "radio_tts.h"
 
 // Voice Activity Detection
-#include "vad.h"
+#include "radio_vad.h"
 
-#include "conference.h"
 
 #define	MAX_GPIO	128		// maximum GPIO pin # (this is intentionally high)
 #define	HAMRADIO_CONF	"/etc/freeswitch/hamradio.conf" // configuration file

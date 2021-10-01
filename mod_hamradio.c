@@ -86,7 +86,7 @@ SWITCH_STANDARD_API(hamradio_function) {
                        "   hamradio power [radio] <on|off>\n"
                        "   hamradio ptt [radio] <on|off>\n"
                        "   hamradio reload\n"
-                       "   hamradio status <radio>\n"
+                       "   hamradio status <radio|all>\n"
                        "   hamradio disable [radio]\n"
                        "   hamradio enable [radio]\n"
                        "   hamradio id <radio>\n";
@@ -298,7 +298,7 @@ SWITCH_STANDARD_API(hamradio_function) {
 
          radio_dump_state_var(radio, true);
       } else {
-         stream->write_function(stream, "USAGE:\nhamradio status <radio>\n");
+         stream->write_function(stream, "USAGE:\nhamradio status <radio|all>\n");
          goto done;
       }
    }
