@@ -13,7 +13,12 @@ static void radio_reload_configuration(switch_event_t *evt) {
 
 // Just dump the event information - this is useful for instrumenting new events */
 static void radio_cry_event(switch_event_t *evt) {
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "\n");
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "--Unhandled Event--\n");
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Key: %lu Flags: %i\n", evt->key, evt->flags);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "ID: %06i Subclass: %s Priority: %03i \n", evt->event_id, evt->subclass_name, evt->priority);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Owner: %s\n", evt->owner);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "bind_user_data: %p, event_user_data: %p\n", evt->bind_user_data, evt->event_user_data);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "--Unhandled Event--\n");
 }
 
 // Here we map each event + subclass to it's handler function, so radio_events_init

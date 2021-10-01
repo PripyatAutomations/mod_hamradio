@@ -390,16 +390,18 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    *module_interface = switch_loadable_module_create_module_interface(pool, modname);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "mod_hamradio loaded. please be sure your usage is compliant with regulations!\n");
 
+   /////////////////////////////////////
+   // Set up our global memory object //
+   /////////////////////////////////////
    // Zero out the configuration structure, such as radio data
    memset(&globals, 0, sizeof(globals));
 
+   // Apply some defaults
    globals.modname = strdup(modname);
-
-   // Initialize our mutexes
-   switch_mutex_init(&globals.mutex, SWITCH_MUTEX_UNNESTED, pool);
-
-   // Update some essential pointers:
    globals.pool = pool;
+
+   // Initialize mutexes
+   switch_mutex_init(&globals.mutex, SWITCH_MUTEX_UNNESTED, pool);
 
    // Load config
    radio_load_configuration(0);
