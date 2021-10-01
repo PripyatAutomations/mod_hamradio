@@ -66,7 +66,7 @@ void radio_events_init(void) {
 
       // Hook the event
       if ((switch_event_bind(globals.modname, radio_events[i].event_type, radio_events[i].event_subclass, radio_events[i].event_handler, NULL) != SWITCH_STATUS_SUCCESS)) {
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Couldn't bind %i:%s handler!", radio_events[i].event_type, (radio_events[i].event_subclass != NULL ? radio_events[i].event_subclass : ""));
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Couldn't bind event %s:%s handler!", switch_event_name(radio_events[i].event_type), (radio_events[i].event_subclass != NULL ? radio_events[i].event_subclass : ""));
          break;
       }
    }
