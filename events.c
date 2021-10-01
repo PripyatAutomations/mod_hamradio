@@ -46,6 +46,10 @@ static RadioEvent_t radio_events[] = {
    { SWITCH_EVENT_CHANNEL_CREATE, SWITCH_EVENT_SUBCLASS_ANY, radio_cry_event },
    { SWITCH_EVENT_CHANNEL_DESTROY, SWITCH_EVENT_SUBCLASS_ANY, radio_cry_event },
    { SWITCH_EVENT_CHANNEL_STATE, SWITCH_EVENT_SUBCLASS_ANY, radio_cry_event },
+   { SWITCH_EVENT_CHANNEL_CALLSTATE, SWITCH_EVENT_SUBCLASS_ANY, radio_cry_event },
+   { SWITCH_EVENT_CHANNEL_BRIDGE, SWITCH_EVENT_SUBCLASS_ANY, radio_cry_event },
+   { SWITCH_EVENT_CHANNEL_UNBRIDGE, SWITCH_EVENT_SUBCLASS_ANY, radio_cry_event },
+   { SWITCH_EVENT_CHANNEL_HANGUP, SWITCH_EVENT_SUBCLASS_ANY, radio_cry_event },
 
    // Terminating element - Do not modify.
    { 0, NULL, NULL }
