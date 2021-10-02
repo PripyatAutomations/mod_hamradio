@@ -20,7 +20,9 @@ CFLAGS = -fPIC -g -ggdb `pkg-config --cflags freeswitch` $(MODCFLAGS) -Wno-unuse
 LDFLAGS = `pkg-config --libs freeswitch` $(MODLDFLAGS)
 
 .PHONY: all conf-notice
-all: $(MODNAME) conf-notice
+all: world
+
+world: $(MODNAME) conf-notice
 $(MODNAME): ${MODOBJS}
 	@echo "[LD] $@"
 	@$(CC) -shared -o $@ $^ $(LDFLAGS)

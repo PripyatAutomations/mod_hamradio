@@ -192,7 +192,7 @@ static int dict_add_p(dict *d, const char *key, const char *val, const void *blo
              slot->val = val ? strdup(val) : (char *)val;
 
              if (!slot->val) {
-               free(slot->key);
+               switch_safe_free(slot->key);
                return -1;
              }
           }
@@ -288,7 +288,7 @@ static int dict_resize(dict *d) {
       if (oldtable[i].key && (oldtable[i].key != DUMMY_PTR))
          dict_add_p(d, oldtable[i].key, oldtable[i].val, NULL, oldtable[i].ts, 0);
 
-    free(oldtable);
+    switch_safe_free(oldtable);
 
     return 0;
 }
@@ -324,14 +324,14 @@ void dict_free(dict * d) {
 
     for (i=0; i < d->size; i++) {
       if (d->table[i].key && d->table[i].key != DUMMY_PTR) {
-         free(d->table[i].key);
+         switch_safe_free(d->table[i].key);
          if (d->table[i].val)
-            free(d->table[i].val);
+            switch_safe_free(d->table[i].val);
       }
     }
 
-    free(d->table);
-    free(d);
+    switch_safe_free(d->table);
+    switch_safe_free(d);
 
     return;
 }
@@ -384,12 +384,12 @@ int dict_del(dict *d, const char *key) {
        return -1;
 
     if (kp->key && kp->key != DUMMY_PTR)
-       free(kp->key);
+       switch_safe_free(kp->key);
 
     kp->key = DUMMY_PTR;
 
     if (kp->val)
-       free(kp->val);
+       switch_safe_free(kp->val);
 
     kp->val = NULL;
     d->used --;
@@ -483,7 +483,7 @@ int main(int argc, char **argv) {
 
     nkeys = (argc > 1) ? (int)atoi(argv[1]) : NKEYS;
     printf("%15s: %d\n", "values", nkeys);
-    buffer = malloc(9 * nkeys);
+    switch_malloc(buffer, 9 * nkeys);
 
     d = dict_new();
     t1 = epoch_double();
@@ -541,7 +541,7 @@ int main(int argc, char **argv) {
     t2 = epoch_double();
     printf(ALIGN, "free", t2 - t1);
 
-    free(buffer);
+    switch_safe_free(buffer);
 
     return 0;
 }

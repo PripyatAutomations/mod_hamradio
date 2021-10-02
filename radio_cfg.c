@@ -71,7 +71,7 @@ dict *dconf_load(const char *file) {
       else if (*skip == '[' && *end == ']') {		// section
          // plug a memory leak
          if (section != NULL)
-            free(section);
+            switch_safe_free(section);
 
          section = strndup(skip + 1, strlen(skip) - 2);
          switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
@@ -168,8 +168,8 @@ dict *dconf_load(const char *file) {
          }
 
          // free some memory up
-         free(key);
-         free(val);
+         switch_safe_free(key);
+         switch_safe_free(val);
 
       /////////////////
       // Conferences //
@@ -188,8 +188,8 @@ dict *dconf_load(const char *file) {
          } else if (strcasecmp(key, "listen_pin") == 0) {
            // XXX:
          }
-         free(key);
-         free(val);
+         switch_safe_free(key);
+         switch_safe_free(val);
 
       //////////////
       // Tonesets //
@@ -204,8 +204,8 @@ dict *dconf_load(const char *file) {
          dict_add(globals.radio_tones, key, val);
 
          // Add to dictionary
-         free(key);
-         free(val);
+         switch_safe_free(key);
+         switch_safe_free(val);
 
       //////////////////////
       // Radio Interfaces //
@@ -236,7 +236,7 @@ dict *dconf_load(const char *file) {
 
          // is this the first radio definition? if so, we must allocate the memory
          if (globals.Radios == NULL)
-            globals.Radios = malloc(sizeof(Radio_t) * globals.max_radios);
+            switch_malloc(globals.Radios, sizeof(Radio_t) * globals.max_radios);
 
          if ((r = &Radios(radio)) == NULL) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "error bringing up radio%d - couldn't find memory structure!\n", radio);
@@ -401,8 +401,8 @@ dict *dconf_load(const char *file) {
               warnings++;
            }
          }
-         free(key);
-         free(val);
+         switch_safe_free(key);
+         switch_safe_free(val);
       } else {
          switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Unknown configuration section '%s' parsing '%s' at %s:%d\n", section, buf, file, line);
          warnings++;
@@ -412,9 +412,9 @@ dict *dconf_load(const char *file) {
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "configuration loaded with %d errors and %d warnings from %s (%d lines)\n", errors, warnings, file, line);
    fclose(fp);
 
-   // avoid leaking memory from strdup above in section processing
+   // avoid leaking memory from switch_strdup above in section processing
    if (section != NULL)
-      free(section);
+      switch_safe_free(section);
 
    return cp;
 }

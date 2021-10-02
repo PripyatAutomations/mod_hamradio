@@ -473,7 +473,7 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
    radio_events_fini();
 
    // Clear our memory before it's returned to freeswitch for reuse...
-   free(globals.modname);
+   switch_safe_free(globals.modname);
    memset(&globals, 0, sizeof(globals));
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Goodbye from mod_hamradio, have a great day! We hope to see you back soon!\n");
