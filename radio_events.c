@@ -8,6 +8,12 @@
 #include "mod_hamradio.h"
 
 static void radio_reload_configuration(switch_event_t *evt) {
+
+   radio_load_configuration(true);
+}
+
+// Just dump the event information - this is useful for instrumenting new events */
+static void radio_cry_event(switch_event_t *evt) {
    // Exclude some excessively noisy, yet useless events
    if ((evt->event_id == SWITCH_EVENT_HEARTBEAT) ||
        (evt->event_id == SWITCH_EVENT_RE_SCHEDULE) ||
@@ -17,11 +23,6 @@ static void radio_reload_configuration(switch_event_t *evt) {
        (evt->event_id == SWITCH_EVENT_SHUTDOWN))
       return;
 
-   radio_load_configuration(true);
-}
-
-// Just dump the event information - this is useful for instrumenting new events */
-static void radio_cry_event(switch_event_t *evt) {
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "--Unhandled Event--\n");
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Key: %lu Flags: %i\n", evt->key, evt->flags);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "ID: %s Subclass: %s Priority: %03i \n", switch_event_name(evt->event_id), evt->subclass_name, evt->priority);
