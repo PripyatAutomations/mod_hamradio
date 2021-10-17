@@ -3,6 +3,7 @@
   <param name="colorize-console" value="true"/>
   <param name="max-sessions" value="100"/>
   <param name="sessions-per-second" value="15"/>
+  <param name="loglevel" value="debug"/>
   <!-- Default Global Log Level - value is one of debug,info,notice,warning,err,crit,alert -->
   <param name="loglevel" value="debug"/>
   <param name="rtp-start-port" value="16384"/>
