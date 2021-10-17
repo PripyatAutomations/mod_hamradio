@@ -74,7 +74,7 @@ dict *dconf_load(const char *file) {
             switch_safe_free(section);
 
          section = strndup(skip + 1, strlen(skip) - 2);
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
+//         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
 
          // Here we should initialize anything needed by a section
          if (strcasecmp(section, "tones")) {
@@ -247,7 +247,7 @@ dict *dconf_load(const char *file) {
          key = strndup(skip, (sep - skip));
          val = strndup(sep + 1, strlen(sep + 1));
 
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[cfg:radio%d] setting %s - %s. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
+//         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[cfg:radio%d] setting %s - %s. (parsing '%s' at %s:%d)\n", radio, key, val, buf, file, line);
 
          if (strcasecmp(key, "enabled") == 0) {
            if (!strcasecmp(val, "true") || !strcasecmp(val, "yes") || !strcasecmp(val, "on")) {
