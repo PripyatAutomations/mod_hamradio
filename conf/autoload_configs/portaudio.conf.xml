@@ -11,16 +11,31 @@
  </settings>
  <streams>
   <stream name="radio0">
-   <param name="indev" value="USB Audio Device"/>
-   <param name="outdev" value="USB Audio Device" />
+   <param name="indev" value="radio0"/>
+   <param name="outdev" value="radio0" />
    <param name="sample-rate" value="48000" />
    <param name="codec-ms" value="10" />
    <param name="channels" value="1" />
   </stream>
 
   <stream name="radio1">
-   <param name="indev" value="Turtle Beach USB Audio" />
-   <param name="outdev" value="Turtle Beach USB Audio" />
+   <param name="indev" value="radio1" />
+   <param name="outdev" value="radio1" />
+   <param name="sample-rate" value="48000" />
+   <param name="codec-ms" value="10" />
+   <param name="channels" value="1" />
+
+  <stream name="radio0">
+   <param name="indev" value="radio2"/>
+   <param name="outdev" value="radio2" />
+   <param name="sample-rate" value="48000" />
+   <param name="codec-ms" value="10" />
+   <param name="channels" value="1" />
+  </stream>
+
+  <stream name="radio1">
+   <param name="indev" value="radio3" />
+   <param name="outdev" value="radio3" />
    <param name="sample-rate" value="48000" />
    <param name="codec-ms" value="10" />
    <param name="channels" value="1" />
