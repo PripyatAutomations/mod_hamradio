@@ -11,31 +11,32 @@
  </settings>
  <streams>
   <stream name="radio0">
-   <param name="indev" value="radio0"/>
-   <param name="outdev" value="radio0" />
+   <param name="indev" value="hw:2,0"/>
+   <param name="outdev" value="hw:2,0" />
    <param name="sample-rate" value="48000" />
    <param name="codec-ms" value="10" />
    <param name="channels" value="1" />
   </stream>
 
   <stream name="radio1">
-   <param name="indev" value="radio1" />
-   <param name="outdev" value="radio1" />
-   <param name="sample-rate" value="48000" />
-   <param name="codec-ms" value="10" />
-   <param name="channels" value="1" />
-
-  <stream name="radio0">
-   <param name="indev" value="radio2"/>
-   <param name="outdev" value="radio2" />
+   <param name="indev" value="hw:hw4,0" />
+   <param name="outdev" value="hw:hw4,0" />
    <param name="sample-rate" value="48000" />
    <param name="codec-ms" value="10" />
    <param name="channels" value="1" />
   </stream>
 
-  <stream name="radio1">
-   <param name="indev" value="radio3" />
-   <param name="outdev" value="radio3" />
+  <stream name="radio2">
+   <param name="indev" value="hw:5,0"/>
+   <param name="outdev" value="hw:5,0" />
+   <param name="sample-rate" value="48000" />
+   <param name="codec-ms" value="10" />
+   <param name="channels" value="1" />
+  </stream>
+
+  <stream name="radio3">
+   <param name="indev" value="hw:6,0" />
+   <param name="outdev" value="hw:6,0" />
    <param name="sample-rate" value="48000" />
    <param name="codec-ms" value="10" />
    <param name="channels" value="1" />
