@@ -385,8 +385,6 @@ static void channel_cb(switch_core_session_t *session, switch_channel_callstate_
 }
 
 SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
-   switch_api_interface_t *api_interface;
-   switch_application_interface_t *app_interface;
    *module_interface = switch_loadable_module_create_module_interface(pool, modname);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "mod_hamradio loaded. please be sure your usage is compliant with regulations!\n");
 
@@ -401,7 +399,8 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    globals.pool = pool;
 
    // Initialize mutexes
-   switch_mutex_init(&globals.mutex, SWITCH_MUTEX_UNNESTED, pool);
+//   switch_mutex_init(&globals.mutex, SWITCH_MUTEX_UNNESTED, pool);
+   switch_mutex_init(&globals.mutex, SWITCH_MUTEX_NESTED, pool);
 
    // Load config
    radio_load_configuration(0);
@@ -417,7 +416,7 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    radio_conference_init();
 
    // Define our CLI interface
-   SWITCH_ADD_API(api_interface, "hamradio", "hamradio channel controls", hamradio_function, "shows status");	
+   SWITCH_ADD_API(globals.api_interface, "hamradio", "hamradio channel controls", hamradio_function, "shows status");	
    switch_console_set_complete("add hamradio help");
    switch_console_set_complete("add hamradio status");
    switch_console_set_complete("add hamradio disable");
@@ -427,15 +426,16 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    switch_console_set_complete("add hamradio reload");
 
    // Define our app (dialplan) interface
-   SWITCH_ADD_APP(app_interface, "radio_disable", "DISable a radio channel", "", app_radio_disable, "", SAF_NONE);
-   SWITCH_ADD_APP(app_interface, "radio_enable", "ENable a radio channel", "", app_radio_enable, "", SAF_NONE);
-   SWITCH_ADD_APP(app_interface, "radio_morse_id", "Send Morse code ID via radio channel", "", app_radio_morse_id, "", SAF_NONE);
-   SWITCH_ADD_APP(app_interface, "radio_power_on", "Turn POWER relay ON for radio", "", app_radio_power_on, "", SAF_NONE);
-   SWITCH_ADD_APP(app_interface, "radio_power_off", "Turn POWER relay OFF for radio", "", app_radio_power_off, "", SAF_NONE);
-   SWITCH_ADD_APP(app_interface, "radio_ptt_on", "Turn Push To Talk (PTT) relay ON", "", app_radio_ptt_on, "", SAF_NONE);
-   SWITCH_ADD_APP(app_interface, "radio_ptt_off", "Turn Push To Talk (PTT) relay OFF", "", app_radio_ptt_off, "", SAF_NONE);
-   SWITCH_ADD_APP(app_interface, "radio_conference_ptt_on", "Turn PTT on for all radios in conference except active RX (Repeater mode)", "", app_radio_conference_ptt_on, "", SAF_NONE);
-   SWITCH_ADD_APP(app_interface, "radio_conference_ptt_off", "Turn PTT off for all radios in conference except active RX (Repeater mode)", "", app_radio_conference_ptt_off, "", SAF_NONE);
+   SWITCH_ADD_APP(globals.app_interface, "radio_disable", "DISable a radio channel", "", app_radio_disable, "", SAF_NONE);
+   SWITCH_ADD_APP(globals.app_interface, "radio_enable", "ENable a radio channel", "", app_radio_enable, "", SAF_NONE);
+   SWITCH_ADD_APP(globals.app_interface, "radio_morse_id", "Send Morse code ID via radio channel", "", app_radio_morse_id, "", SAF_NONE);
+   SWITCH_ADD_APP(globals.app_interface, "radio_voice_id", "Send TextToSpeech ID via radio channel", "", app_radio_morse_id, "", SAF_NONE);
+   SWITCH_ADD_APP(globals.app_interface, "radio_power_on", "Turn POWER relay ON for radio", "", app_radio_power_on, "", SAF_NONE);
+   SWITCH_ADD_APP(globals.app_interface, "radio_power_off", "Turn POWER relay OFF for radio", "", app_radio_power_off, "", SAF_NONE);
+   SWITCH_ADD_APP(globals.app_interface, "radio_ptt_on", "Turn Push To Talk (PTT) relay ON", "", app_radio_ptt_on, "", SAF_NONE);
+   SWITCH_ADD_APP(globals.app_interface, "radio_ptt_off", "Turn Push To Talk (PTT) relay OFF", "", app_radio_ptt_off, "", SAF_NONE);
+   SWITCH_ADD_APP(globals.app_interface, "radio_conference_ptt_on", "Turn PTT on for all radios in conference except active RX (Repeater mode)", "", app_radio_conference_ptt_on, "", SAF_NONE);
+   SWITCH_ADD_APP(globals.app_interface, "radio_conference_ptt_off", "Turn PTT off for all radios in conference except active RX (Repeater mode)", "", app_radio_conference_ptt_off, "", SAF_NONE);
 
  
    // Hook a channel callback so we can see channel events
@@ -450,6 +450,7 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
 
 /* Called when the system shuts down:  Macro expands to: switch_status_t mod_hamradio_shutdown() */
 SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
+   switch_mutex_lock(globals.mutex);
    // Signal our thread that it should die...
    globals.alive = 0;
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "shutting down radio interfaces due to freeswitch shutdown or reload...\n");
@@ -471,6 +472,8 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_hamradio_shutdown) {
 #endif
    // Free some memory
    radio_events_fini();
+
+   switch_mutex_unlock(globals.mutex);
 
    // Clear our memory before it's returned to freeswitch for reuse...
    switch_safe_free(globals.modname);

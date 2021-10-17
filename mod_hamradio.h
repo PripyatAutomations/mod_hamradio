@@ -3,6 +3,10 @@
 ////////////////////
 #if	!defined(MOD_HAMRADIO_H)
 #define	MOD_HAMRADIO_H
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <stdint.h>
 #include <gpiod.h>
 #include <time.h>
 #include <stdlib.h>
@@ -63,6 +67,8 @@ struct Globals {
    struct Radio *Radios;		// radio structures
    switch_mutex_t *mutex;
    switch_memory_pool_t  *pool;		// our memory pool
+   switch_api_interface_t *api_interface;
+   switch_application_interface_t *app_interface;
    dict *cfg;				// configuration from .conf
    dict *radio_tones;			// Radio tones
    // XXX: This needs moved when we add support for multiple GPIO chips...
