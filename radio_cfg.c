@@ -257,6 +257,9 @@ dict *dconf_load(const char *file) {
            }
          } else if (strcasecmp(key, "cat_type") == 0) {
             if (strcasecmp(val, "hamlib") == 0) {
+              r->CAT_mode = CAT_TYPE_HAMLIB;
+            } else if (strcasecmp(val, "rawserial") == 0) {
+              r->CAT_mode = CAT_TYPE_RAWSERIAL;
             }
          } else if (strcasecmp(key, "cat_model") == 0) {
             if (strcasecmp(val, "probe") == 0) {

@@ -42,9 +42,9 @@ typedef enum RadioStatus {
 // CAT (Computer Assisted Tuning) control mode stuff
 //
 typedef enum RadioCATMode {
-   CAT_MODE_NONE = 0,
-   CAT_MODE_RIGCTL,
-   CAT_MODE_RAWSERIAL
+   CAT_TYPE_NONE = 0,
+   CAT_TYPE_HAMLIB,
+   CAT_TYPE_RAWSERIAL
 } RadioCATMode;
 
 struct Radio {
