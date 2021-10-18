@@ -1,7 +1,7 @@
 MODNAME = mod_hamradio.so
 
 MODOBJS += mod_hamradio.o
-MODOBJS += dict.o hamlib.o
+MODOBJS += dict.o radio_hamlib.o
 MODOBJS += radio.o radio_gpio.o
 MODOBJS += radio_tones.o radio_tts.o
 MODOBJS += radio_conf.o radio_channel.o
@@ -9,6 +9,8 @@ MODOBJS += radio_id.o radio_vad.o
 MODOBJS += radio_core.o radio_endpoint.o
 MODOBJS += radio_events.o radio_cfg.o
 MODOBJS += radio_audio.o radio_alsa.o
+MODOBJS += radio_http.o
+
 MODCFLAGS = -Wall -Werror
 MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod -lhamlib -lbsd
 

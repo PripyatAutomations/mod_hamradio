@@ -38,6 +38,15 @@ typedef enum RadioStatus {
    RADIO_OFF = 0, RADIO_IDLE, RADIO_RX, RADIO_TX, RADIO_TX_DATA
 } RadioStatus_t;
 
+//
+// CAT (Computer Assisted Tuning) control mode stuff
+//
+typedef enum RadioCATMode {
+   CAT_MODE_NONE = 0,
+   CAT_MODE_RIGCTL,
+   CAT_MODE_RAWSERIAL
+} RadioCATMode;
+
 struct Radio {
    ///// Lock /////
    switch_mutex_t *mutex;
@@ -45,8 +54,9 @@ struct Radio {
    ///////////////////
    // configuration //
    ///////////////////
-   switch_bool_t		enabled;		// Is channel enabled?
-   switch_bool_t		tx_allowed;		// is transmitting allowed?
+   switch_bool_t	enabled;	// Is channel enabled?
+   switch_bool_t	tx_allowed;	// is transmitting allowed?
+   RadioCATMode		CAT_mode;	// CAT control mode
    char		description[250];	// Describe the interface
    RadioRXMode_t RX_mode;		// How do we decide this radio is hearing something that should be relayed?
    time_t	timeout_talk;		// How long do we allow someone to talk before stopping TX?
