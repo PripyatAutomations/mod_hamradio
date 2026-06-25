@@ -1,0 +1,4 @@
+!!! More error checking !!!
+ 	* Check for presence of configured GPIOs
+	* Validate configuration overall
+	* More sanity checks in the code

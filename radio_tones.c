@@ -8,16 +8,18 @@
 
 // We should get called when [tones] section is encountered
 int radio_tones_init(void) {
-    if (globals.radio_tones != NULL)
+    if (globals.radio_tones != NULL) {
        dict_free(globals.radio_tones);
+    }
 
     globals.radio_tones = dict_new();
     return SWITCH_STATUS_SUCCESS;
 }
 
 void radio_tones_fini(void) {
-   if (globals.radio_tones != NULL)
+   if (globals.radio_tones != NULL) {
       dict_free(globals.radio_tones);
+   }
 
    globals.radio_tones = NULL;
 }

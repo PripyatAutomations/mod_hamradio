@@ -82,9 +82,9 @@ struct Radio {
 
 #if	!defined(NO_LIBGPIOD)
    // libgpiod data
-   struct gpiod_line *gpio_power;	// Power or ignition sense output
-   struct gpiod_line *gpio_ptt;		// Push To Talk output
-   struct gpiod_line *gpio_squelch;	// squelch (COS or TOS) output from radio
+   struct gpiod_line_request *gpio_power; 	// Power or ignition sense output
+   struct gpiod_line_request *gpio_ptt;		// Push To Talk output
+   struct gpiod_line_request *gpio_squelch;	// squelch (COS or TOS) output from radio
 #endif
 
 #if	!defined(NO_HAMLIB)

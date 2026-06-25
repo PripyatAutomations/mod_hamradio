@@ -25,10 +25,9 @@ dict *dconf_load(const char *file) {
         *section = NULL;
    dict *cp = dict_new();
 
-   if (!(fp = fopen(file, "r"))) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "mod_hamdradio: %s: Failed loading '%s'\n", __FUNCTION__, file);
-      fclose(fp);
-      return false;
+   if ((fp = fopen(file, "r")) == NULL) {
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "mod_hamdradio: %s: Failed loading '%s'\n", __FUNCTION__, file);
+      return NULL;
    }
 
    // We need to use safer string functions...
@@ -39,8 +38,9 @@ dict *dconf_load(const char *file) {
 
       // delete prior whitespace...
       skip = buf;
-      while(*skip == ' ')
+      while(*skip == ' ') {
         skip++;
+      }
 
       // Delete trailing newlines or white space
       end = buf + strlen(buf);
@@ -50,8 +50,9 @@ dict *dconf_load(const char *file) {
       } while(*end == '\r' || *end == '\n' || *end == ' ');
 
       // did we eat the whole line?
-      if ((end - skip) <= 0)
+      if ((end - skip) <= 0) {
          continue;
+      }
 
       // handle comments
       if (skip[0] == '*' && skip[1] == '/') {
@@ -59,22 +60,25 @@ dict *dconf_load(const char *file) {
          continue;
       } else if (skip[0] == ';' || skip[0] == '#' || (skip[0] == '/' && skip[1] == '/')) {
          continue;                     /* line comment */
-      } else if (skip[0] == '/' && skip[1] == '*')
+      } else if (skip[0] == '/' && skip[1] == '*') {
          in_comment = 1;               /* start of block comment */
+      }
 
-      if (in_comment)
+      if (in_comment) {
          continue;                     /* ignored line, in block comment */
+      }
 
       if ((*skip == '/' && *skip+1 == '/') ||		// comments
-           *skip == '#' || *skip == ';')
+           *skip == '#' || *skip == ';') {
          continue;
-      else if (*skip == '[' && *end == ']') {		// section
+      } else if (*skip == '[' && *end == ']') {		// section
          // plug a memory leak
-         if (section != NULL)
+         if (section != NULL) {
             switch_safe_free(section);
+         }
 
          section = strndup(skip + 1, strlen(skip) - 2);
-//         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "cfg.section.open: '%s'\n", section);
 
          // Here we should initialize anything needed by a section
          if (strcasecmp(section, "tones")) {
@@ -86,7 +90,7 @@ dict *dconf_load(const char *file) {
 
       // Configuration data *MUST* be inside of a section, no exceptions.
       if (!section) {
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "config %s:%d: line outside of section: %s\n", file, line, buf);
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "config %s:%d: line outside of section: %s\n", file, line, buf);
          errors++;
          continue;
       }
@@ -128,18 +132,20 @@ dict *dconf_load(const char *file) {
          // XXX: This needs to be improved in a way that will reflect changes to the dict contents via api....
          if (strcasecmp(key, "max_radios") == 0) {
             // Define max radios
-            if ((i = atoi(val)) > 0)
+            if ((i = atoi(val)) > 0) {
                globals.max_radios = i;
+            }
          } else if (strcasecmp(key, "max_conferences") == 0) {
-            if ((i = atoi(val)) > 0)
+            if ((i = atoi(val)) > 0) {
                globals.max_conferences = i;
+            }
          } else if (strcasecmp(key, "poll_interval") == 0) {
             // Minimum poll time is 25ms
             if ((i = atoi(val)) >= 25) {
                globals.poll_interval = i;
             } else if (i == 0) {
                globals.poll_interval = 0;
-               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "poll_interval is disabled (0), set it to >= 25 to enable polling throttling, if you find CPU usage is too high when idle!\n");
+               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "poll_interval is disabled (0), set it to >= 25 to enable polling throttling, if you find CPU usage is too high when idle!\n");
             }
          } else if (strcasecmp(key, "id_timeout") == 0) {
             i = atoi(val);
@@ -314,8 +320,9 @@ dict *dconf_load(const char *file) {
            int ival = atoi(val);
 
            // Some people don't use power control, -1 is a valid setting to indicate 'disabled'...
-           if (ival == -1)
+           if (ival == -1) {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[cfg:radio%d] gpio power control disabled.\n", radio);
+           }
 
            if (ival >= -1 && ival <= MAX_GPIO) {
               r->pin_power = ival;
@@ -331,8 +338,9 @@ dict *dconf_load(const char *file) {
          } else if (strcasecmp(key, "gpio_ptt") == 0) {
            int ival = atoi(val);
 
-           if (ival == -1)
+           if (ival == -1) {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[cfg:radio%d] gpio ptt control disabled.\n", radio);
+           }
 
            // Receivers won't have a PTT pin, -1 is valid setting to indicate 'disabled'...
            if (ival >= -1 && ival <= MAX_GPIO) {
@@ -368,13 +376,15 @@ dict *dconf_load(const char *file) {
               r->RX_mode = SQUELCH_GPIO;
            } else if (!strcasecmp(val, "vox") == 0) {
               r->RX_mode = SQUELCH_VOX;
-           } else
+           } else {
               r->RX_mode = SQUELCH_MANUAL;
+           }
          } else if (strcasecmp(key, "squelch_min") == 0) {
              int i = atoi(val);
 
-             if (i > 0)
+             if (i > 0) {
                 r->squelch_min = i;
+             }
          } else if (strcasecmp(key, "squelch_invert") == 0) {
            if (!strcasecmp(val, "true") || !strcasecmp(val, "yes") || !strcasecmp(val, "on")) {
               r->squelch_invert = true;
@@ -386,7 +396,7 @@ dict *dconf_load(const char *file) {
            new_tot = atoi(val);
 
            if (new_tot > 0) {
-              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[%s] Set timeout_talk to %d\n", section, new_tot);
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "[%s] Set timeout_talk to %d\n", section, new_tot);
               r->timeout_talk = new_tot;
            } else {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[%s] Invalid timeout_talk value '%s' parsing '%s' at %s:%d\n", section, val, buf, file, line);
@@ -397,7 +407,7 @@ dict *dconf_load(const char *file) {
            new_holdoff = atoi(val);
 
            if (new_holdoff > 0) {
-              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[%s] Set timeout_holdoff to %d\n", section, new_holdoff);
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "[%s] Set timeout_holdoff to %d\n", section, new_holdoff);
               r->timeout_holdoff = new_holdoff;
            } else {
               switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[%s] Invalid timeout_penalty value '%s' parsing '%s' at %s:%d\n", section, val, buf, file, line);
@@ -407,17 +417,18 @@ dict *dconf_load(const char *file) {
          switch_safe_free(key);
          switch_safe_free(val);
       } else {
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Unknown configuration section '%s' parsing '%s' at %s:%d\n", section, buf, file, line);
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "Unknown configuration section '%s' parsing '%s' at %s:%d\n", section, buf, file, line);
          warnings++;
       }
    } while (!feof(fp));
 
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "configuration loaded with %d errors and %d warnings from %s (%d lines)\n", errors, warnings, file, line);
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "configuration loaded with %d errors and %d warnings from %s (%d lines)\n", errors, warnings, file, line);
    fclose(fp);
 
    // avoid leaking memory from switch_strdup above in section processing
-   if (section != NULL)
+   if (section != NULL) {
       switch_safe_free(section);
+   }
 
    return cp;
 }
@@ -429,14 +440,15 @@ int dconf_get_bool(const char *key, const int def) {
    char       *tmp;
    int         rv = 0;
 
-   if ((tmp = dconf_get_str(key, NULL)) == NULL)
+   if ((tmp = dconf_get_str(key, NULL)) == NULL) {
       return def;
-   else if (strcasecmp(tmp, "true") == 0 || strcasecmp(tmp, "on") == 0 ||
-            strcasecmp(tmp, "yes") == 0 || (int)strtol(tmp, NULL, 0) == 1)
+   } else if (strcasecmp(tmp, "true") == 0 || strcasecmp(tmp, "on") == 0 ||
+            strcasecmp(tmp, "yes") == 0 || (int)strtol(tmp, NULL, 0) == 1) {
       rv = 1;
-   else if (strcasecmp(tmp, "false") == 0 || strcasecmp(tmp, "off") == 0 ||
-            strcasecmp(tmp, "no") == 0 || (int)strtol(tmp, NULL, 0) == 0)
+   } else if (strcasecmp(tmp, "false") == 0 || strcasecmp(tmp, "off") == 0 ||
+            strcasecmp(tmp, "no") == 0 || (int)strtol(tmp, NULL, 0) == 0) {
       rv = 0;
+   }
 
    return rv;
 }
@@ -444,8 +456,9 @@ int dconf_get_bool(const char *key, const int def) {
 double dconf_get_double(const char *key, const double def) {
    char       *tmp;
 
-   if ((tmp = dconf_get_str(key, NULL)) == NULL)
+   if ((tmp = dconf_get_str(key, NULL)) == NULL) {
       return def;
+   }
 
    return atof(tmp);
 }
@@ -453,15 +466,17 @@ double dconf_get_double(const char *key, const double def) {
 int dconf_get_int(const char *key, const int def) {
    char       *tmp;
 
-   if ((tmp = dconf_get_str(key, NULL)) == NULL)
+   if ((tmp = dconf_get_str(key, NULL)) == NULL) {
       return def;
+   }
 
    return (int)strtol(tmp, NULL, 0);
 }
 
 char       *dconf_get_str(const char *key, const char *def) {
-   if (_CONF_DICT == NULL || key == NULL)
+   if (_CONF_DICT == NULL || key == NULL) {
       return NULL;
+   }
 
    return (char *)dict_get(_CONF_DICT, key, def);
 }

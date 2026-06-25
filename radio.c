@@ -49,7 +49,7 @@ RadioStatus_t radio_enable(const int radio) {
    r = &Radios(radio);
 
    if (r->enabled && (r->status >= RADIO_IDLE)) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d is already enabled!\n", radio);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] radio%d is already enabled!\n", radio);
       return r->status;
    }
 
@@ -61,7 +61,7 @@ RadioStatus_t radio_enable(const int radio) {
    return RADIO_IDLE;
 }
 
-int radio_disable(const int radio) {
+RadioStatus_t radio_disable(const int radio) {
    Radio_t *r = NULL;
 
    if (radio < 0 || radio >= globals.max_radios) {
@@ -72,7 +72,7 @@ int radio_disable(const int radio) {
    r = &Radios(radio);
 
    if (!r->enabled) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d is already disabled!\n", radio);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] radio%d is already disabled!\n", radio);
       return RADIO_OFF;
    }
 
@@ -119,8 +119,9 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    old_status = r->status;
 
    // Shortcut for cases where the state hasn't changed - don't display a message, just ignore the request
-   if (old_status == val)
+   if (old_status == val) {
       return val;
+   }
 
    // Set the new channel state
    r->status = val;
@@ -137,8 +138,9 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
    }
 
    // Are any configured controls missing?
-   if (rv == SWITCH_STATUS_FALSE)
+   if (rv == SWITCH_STATUS_FALSE) {
       return RADIO_ERROR;
+   }
 
    // What status has been requested?
    switch (val) {
@@ -152,19 +154,21 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         err_invalid_radio(radio);
         break;
      case RADIO_DISABLED:
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] set_state() Ignoring state change for radio%d because it is disabled.\n", radio);
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "[radio] set_state() Ignoring state change for radio%d because it is disabled.\n", radio);
         break;
      ////////////////////////
      // Valid radio states //
      ////////////////////////
      case RADIO_OFF:
         // Clear PTT
-        if (r->gpio_ptt)
+        if (r->gpio_ptt) {
            radio_gpio_ptt_off(radio);
+        }
 
         // Turn off IGN SENS or POWER RELAY
-        if (r->gpio_power)
+        if (r->gpio_power) {
            radio_gpio_power_off(radio);
+        }
         break;
      case RADIO_IDLE:
         if (r->status == RADIO_TX) {
@@ -172,7 +176,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
               // Should we send a trailing ident?
               if ((r->last_id + globals.timeout_id) < now) {
                  // No ID mode is not permitted on ham bands, but maybe user is IDing manually? throw a warning
-                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d set_state(Idle) should send ID as it's been %lu seconds (> %lu threshold) but ID mode is set to None! We won't ID but ham users must ID to be compliant with government regulations!", radio, (now - r->last_id), globals.timeout_id);
+                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "radio%d set_state(Idle) should send ID as it's been %lu seconds (> %lu threshold) but ID mode is set to None! We won't ID but ham users must ID to be compliant with government regulations!", radio, (now - r->last_id), globals.timeout_id);
 
                  switch (globals.id_type) {
                     // Here we fall through intentionally to save duplication
@@ -189,7 +193,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
 
               // record statistics about the QSO length
               qso_length = now - r->talk_start;
-              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was transmitting for %lu s...\n", radio, qso_length);
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] radio%d was transmitting for %lu s...\n", radio, qso_length);
               // save the total time transmitted
               r->total_tx += qso_length;
            }
@@ -201,7 +205,7 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         if (r->status == RADIO_RX) {
            if (r->listen_start > 0) {
               qso_length = now - r->listen_start;
-              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[radio] radio%d was receiving for %lu s...\n", radio, qso_length);
+              switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[radio] radio%d was receiving for %lu s...\n", radio, qso_length);
               r->total_rx += qso_length;
            }
            // save last time received
@@ -209,24 +213,28 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         }
 
         // Clear PTT before powering on
-        if (r->gpio_ptt)
+        if (r->gpio_ptt) {
            radio_gpio_ptt_off(radio);
+        }
 
         // Ensure POWER is ON, if it wasn't previously
-        if (r->gpio_power)
+        if (r->gpio_power) {
            radio_gpio_power_on(radio);
+        }
 
         // Clear talk time for TOT
         r->talk_start = 0;
         break;
      case RADIO_RX:
         // Clear PTT before powering on
-        if (r->gpio_ptt)
+        if (r->gpio_ptt) {
            radio_gpio_ptt_off(radio);
+        }
 
         // Ensure POWER is ON, if it wasn't previously
-        if (r->gpio_power)
+        if (r->gpio_power) {
            radio_gpio_power_on(radio);
+        }
 
         r->listen_start = now;
         break;
@@ -239,16 +247,18 @@ RadioStatus_t radio_set_state(const int radio, RadioStatus_t val) {
         }
 
         // Start timers here for TOT, but don't restart it if we didn't stop TXing...
-        if (r->talk_start == 0)
+        if (r->talk_start == 0) {
            r->talk_start = now;
+        }
 
         // XXX: If a CAT PTT is available, raise it
         // if (r->cat_api->Has_PTT)
         //    radio_cat_ptt_on(radio);
 
         // if a PTT GPIO is configured, raise it now
-        if (r->gpio_ptt)
+        if (r->gpio_ptt) {
            radio_gpio_ptt_on(radio);
+        }
 
         break;
    }
@@ -264,8 +274,9 @@ RadioStatus_t radio_get_state(const int radio) {
       return RADIO_ERROR;
    }
 
-   if (Radios(radio).enabled == 0)
+   if (Radios(radio).enabled == 0) {
       return RADIO_DISABLED;
+   }
 
    return (Radios(radio).status);
 }
@@ -281,7 +292,7 @@ void radio_ptt_on(const int radio) {
 
    // Refuse to TX on radio that is turned off!
    if (radio_get_state(radio) == RADIO_OFF) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Ignoring request to TX on radio%d in POWERED OFF state!\n", radio);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "Ignoring request to TX on radio%d in POWERED OFF state!\n", radio);
       return;
    }
 
@@ -301,8 +312,9 @@ void radio_conf_ptt_off(const int radio) {
 void radio_ptt_off(const int radio) {
    switch_channel_t *channel;
 
-   if (radio_get_state(radio) == RADIO_OFF)
+   if (radio_get_state(radio) == RADIO_OFF) {
       return;
+   }
 
    radio_set_state(radio, RADIO_IDLE);
 }
@@ -398,15 +410,17 @@ int radio_dump_state_var(const int radio, switch_bool_t detailed) {
       // Show time stamps with date for last TX/RX times
       memset(tmp1, 0, sizeof(tmp1));
       memset(tmp2, 0, sizeof(tmp2));
-      if (r->last_rx > 0)
+      if (r->last_rx > 0) {
          strftime(tmp1, sizeof(tmp1), date_fmt, localtime(&r->last_rx));
-      else
+      } else {
          sprintf(tmp1, "Never");
+      }
 
-      if (r->last_tx > 0)
+      if (r->last_tx > 0) {
          strftime(tmp2, sizeof(tmp2), date_fmt, localtime(&r->last_tx));
-      else
+      } else {
          sprintf(tmp2, "Never");
+      }
 
       time_t curr_rx = ((r->listen_start > 0) ? (now - r->listen_start) : 0);
       time_t curr_tx = ((r->talk_start > 0) ? (now - r->talk_start) : 0);

@@ -1,0 +1,4 @@
+sudo make clean
+sudo make -j4
+sudo cp mod_hamradio.so /opt/freeswitch/lib/freeswitch/mod/
+sudo gdb --exec=/opt/freeswitch/bin/freeswitch -ex 'run -nonatmap -conf /opt/freeswitch/config/freeswitch -log /opt/freeswitch/var/log/freeswitch/ -db /opt/freeswitch/db'

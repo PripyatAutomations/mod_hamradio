@@ -163,10 +163,11 @@ SWITCH_STANDARD_API(hamradio_function) {
          for (int radio = 0; radio < globals.max_radios; radio++) {
             stream->write_function(stream, "radio%d: power ", radio);
 
-            if (Radios(radio).status == RADIO_OFF)
+            if (Radios(radio).status == RADIO_OFF) {
                stream->write_function(stream, "off\n");
-            else
+            } else {
 	       stream->write_function(stream, "on\n");
+            }
          }
 	 goto done;
       } else if (argc == 2) {
@@ -180,10 +181,11 @@ SWITCH_STANDARD_API(hamradio_function) {
 
 	 stream->write_function(stream, "radio%d: power ", radio);
 
-	 if (Radios(radio).status == RADIO_OFF)
+	 if (Radios(radio).status == RADIO_OFF) {
 	    stream->write_function(stream, "off\n");
-         else
+         } else {
             stream->write_function(stream, "on\n");
+         }
       } else if (argc == 3) {
          const int radio = atoi(argv[1]);
 
@@ -199,10 +201,11 @@ SWITCH_STANDARD_API(hamradio_function) {
 	    goto done;
 	 }
 
-         if ((val = str_to_intbool(argv[2])) == 1)
+         if ((val = str_to_intbool(argv[2])) == 1) { 
             radio_set_state(radio, RADIO_IDLE);
-         else
+         } else {
             radio_set_state(radio, RADIO_OFF);
+         }
 
          stream->write_function(stream, "POWER for radio%d SET to %s\n", radio, (val ? "ON" : "OFF"));
       }
@@ -214,10 +217,11 @@ SWITCH_STANDARD_API(hamradio_function) {
          for (int radio = 0; radio < globals.max_radios; radio++) {
             stream->write_function(stream, "radio%d: ", radio);
 
-	    if (radio_get_state(radio) == RADIO_TX)
+	    if (radio_get_state(radio) == RADIO_TX) {
                stream->write_function(stream, "transmitting\n");
-            else
+            } else {
 	       stream->write_function(stream, "off\n");
+            }
          }
          goto done;
       } else if (argc == 2) {
@@ -231,10 +235,11 @@ SWITCH_STANDARD_API(hamradio_function) {
 
 	 stream->write_function(stream, "radio%d: ", radio);
 
-	 if (radio_get_state(radio) == RADIO_TX)
+	 if (radio_get_state(radio) == RADIO_TX) {
 	    stream->write_function(stream, "transmitting\n");
-	 else
+	 } else {
 	    stream->write_function(stream, "idle\n");
+         }
       } else if (argc == 3) {
          int radio = atoi(argv[1]);
 
@@ -256,10 +261,11 @@ SWITCH_STANDARD_API(hamradio_function) {
 	    goto done;
          }
 
-	 if ((val = str_to_intbool(argv[2])) == 1)
+	 if ((val = str_to_intbool(argv[2])) == 1) {
 	    radio_set_state(radio, RADIO_TX);
-	 else
+	 } else {
 	    radio_set_state(radio, RADIO_IDLE);
+         }
 
          stream->write_function(stream, "PTT for radio %d SET to %s.\n", radio, (val ? "ON" : "OFF"));
 
@@ -271,10 +277,11 @@ SWITCH_STANDARD_API(hamradio_function) {
       int active_radios = 0;
       switch_bool_t full = 0;
       
-      if (argc == 1)
+      if (argc == 1) {
          full = false;
-      else
+      } else {
          full = true;
+      }
 
       // This is a little gross, but reduces duplication...
       if (argc == 1 || (argc == 2 && (strcasecmp(argv[1], "all") == 0))) {
@@ -282,8 +289,9 @@ SWITCH_STANDARD_API(hamradio_function) {
          for (int i = 0; i < globals.max_radios; i++) {
             enum RadioStatus rs = radio_get_state(i);
 
-	    if (rs > RADIO_OFF)
+	    if (rs > RADIO_OFF) {
 	       active_radios++;
+            }
             radio_dump_state_var(i, full);
          }
          stream->write_function(stream, "*** (%d/%d units active) ***\n", active_radios, globals.max_radios);
@@ -313,12 +321,12 @@ done:
 // Configuration Load //
 ////////////////////////
 switch_status_t radio_load_configuration(switch_bool_t reload) {
-   switch_status_t status = SWITCH_STATUS_FALSE;
+   switch_status_t status = SWITCH_STATUS_SUCCESS;
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[mod_hamradio] %sloading configuration from hamradio.conf\n", (reload ? "re" : ""));
 
    if (globals.mutex == NULL) { 
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio_load_configuration - mutex not initialized, failing!\n");
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_load_configuration - mutex not initialized, failing!\n");
       return SWITCH_STATUS_FALSE;
    }
 
@@ -339,7 +347,10 @@ switch_status_t radio_load_configuration(switch_bool_t reload) {
       globals.poll_interval = 100;
 
    // load the dictionary configuration
-   if (!(globals.cfg = dconf_load(HAMRADIO_CONF))) {
+   char conf_path[512];
+   const char *conf_dir = switch_core_get_variable("conf_dir");
+   snprintf(conf_path, sizeof(conf_path), "%s/%s", conf_dir, HAMRADIO_CONF);
+   if (!(globals.cfg = dconf_load(conf_path))) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[mod_hamradio] %sloading configuration from hamradio.conf failed. Please examine the DEBUG level log output from mod_hamradio to see why!\n", (reload ? "re" : ""));
       return SWITCH_STATUS_FALSE;
    }
@@ -363,8 +374,9 @@ switch_status_t radio_load_configuration(switch_bool_t reload) {
       radio_dump_state_var(radio, true);
 
       // Power it up and make it available for use, if enabled
-      if (r->enabled)
+      if (r->enabled) {
          radio_enable(radio);
+      }
 
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Interface radio%d successfully brought up.\n", radio);
    }
@@ -387,6 +399,7 @@ static void channel_cb(switch_core_session_t *session, switch_channel_callstate_
 SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    *module_interface = switch_loadable_module_create_module_interface(pool, modname);
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "mod_hamradio loaded. please be sure your usage is compliant with regulations!\n");
+   switch_status_t status;
 
    /////////////////////////////////////
    // Set up our global memory object //
@@ -402,8 +415,10 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
 //   switch_mutex_init(&globals.mutex, SWITCH_MUTEX_UNNESTED, pool);
    switch_mutex_init(&globals.mutex, SWITCH_MUTEX_NESTED, pool);
 
-   // Load config
-   radio_load_configuration(0);
+   // Load config, halt loading on failure
+   if (radio_load_configuration(0) == SWITCH_STATUS_FALSE) {
+      return SWITCH_STATUS_FALSE;
+   }
 
    // Add our event hooks
    radio_events_init();
@@ -436,7 +451,6 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_hamradio_load) {
    SWITCH_ADD_APP(globals.app_interface, "radio_ptt_off", "Turn Push To Talk (PTT) relay OFF", "", app_radio_ptt_off, "", SAF_NONE);
    SWITCH_ADD_APP(globals.app_interface, "radio_conference_ptt_on", "Turn PTT on for all radios in conference except active RX (Repeater mode)", "", app_radio_conference_ptt_on, "", SAF_NONE);
    SWITCH_ADD_APP(globals.app_interface, "radio_conference_ptt_off", "Turn PTT off for all radios in conference except active RX (Repeater mode)", "", app_radio_conference_ptt_off, "", SAF_NONE);
-
  
    // Hook a channel callback so we can see channel events
    switch_channel_bind_device_state_handler(channel_cb, NULL);

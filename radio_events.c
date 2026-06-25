@@ -8,7 +8,6 @@
 #include "mod_hamradio.h"
 
 static void radio_reload_configuration(switch_event_t *evt) {
-
    radio_load_configuration(true);
 }
 
@@ -20,8 +19,9 @@ static void radio_cry_event(switch_event_t *evt) {
        (evt->event_id == SWITCH_EVENT_API) ||
        (evt->event_id == SWITCH_EVENT_LOG) ||
        (evt->event_id == SWITCH_EVENT_STARTUP) ||
-       (evt->event_id == SWITCH_EVENT_SHUTDOWN))
+       (evt->event_id == SWITCH_EVENT_SHUTDOWN)) {
       return;
+   }
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "--Unhandled Event--\n");
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Key: %lu Flags: %i\n", evt->key, evt->flags);
@@ -77,8 +77,9 @@ void radio_events_init(void) {
    // bind all events we care about
    for (int i = 0; i < (sizeof(radio_events) / sizeof(RadioEvent_t)); i++) {
       // last element, exit the loop
-      if (radio_events[i].event_type == 0 && radio_events[i].event_subclass == NULL && radio_events[i].event_handler == NULL)
+      if (radio_events[i].event_type == 0 && radio_events[i].event_subclass == NULL && radio_events[i].event_handler == NULL) {
          break;
+      }
 
       // If no handler, this event is disabled
       if (radio_events[i].event_handler == NULL) {
@@ -97,10 +98,12 @@ void radio_events_init(void) {
 void radio_events_fini(void) {
    for (int i = 0; i < (sizeof(radio_events) / sizeof(RadioEvent_t)); i++) {
       // last element, exit the loop
-      if (radio_events[i].event_type == 0 && radio_events[i].event_subclass == NULL && radio_events[i].event_handler == NULL)
+      if (radio_events[i].event_type == 0 && radio_events[i].event_subclass == NULL && radio_events[i].event_handler == NULL) {
          break;
+      }
 
-      if (radio_events[i].event_handler != NULL)
+      if (radio_events[i].event_handler != NULL) {
          switch_event_unbind_callback(radio_events[i].event_handler);
+      }
    }
 }

@@ -20,7 +20,7 @@ HARDWARE
 
 SOFTWARE
 ========
-	* Debian 11
+	* Debian 13
 	* portaudio, hamlib, and libgpiod dev packages
 	* Freeswitch and it's development headers, either packaged or locally built
 		- MUST have mod_portaudio built or come up with your own audio solution

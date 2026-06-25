@@ -8,224 +8,348 @@
 #include <gpiod.h>
 #include "mod_hamradio.h"
 
-///////////////////////
-// gpiochips support //
-///////////////////////
-// XXX: Belongs in globals
-const int max_gpuchips = 8;
+//////////////////////
+// GPIO chip globals //
+//////////////////////
 
-// right now we only support one gpio chip, but this wrapper should ease transition
+// still single-chip for now
+static struct gpiod_chip *gpiochip = NULL;
+
 struct gpiod_chip *radio_find_gpiochip(const char *name) {
-   return globals.gpiochip;
+   (void)name;
+   return gpiochip;
 }
 
-// Initialize a GPIO controller, so we can use it's pins
 int radio_gpiochip_init(const char *chipname) {
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[gpio] initializing gpio chip %s\n", chipname);
-   
-   if (radio_find_gpiochip(chipname) != NULL) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[gpio] chip %s is already open at [%p], leaving it alone\n", chipname, globals.gpiochip);
+   char path[64];
+
+   if (gpiochip) {
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
+                        "[gpio] chip already initialized\n");
       return SWITCH_STATUS_SUCCESS;
    }
 
-   // Locate the GPIO controller we want to talk to, by name
-   if ((globals.gpiochip = gpiod_chip_open_by_name(chipname)) == NULL) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[gpio] Error opening gpiochip %s, we cannot continue.\n", chipname);
+   // accept either "gpiochip0" or "/dev/gpiochip0"
+   if (strncmp(chipname, "/dev/", 5) == 0) {
+      snprintf(path, sizeof(path), "%s", chipname);
+   } else {
+      snprintf(path, sizeof(path), "/dev/%s", chipname);
+   }
+
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE,
+                     "[gpio] opening chip %s\n", path);
+
+   gpiochip = gpiod_chip_open(path);
+
+   if (!gpiochip) {
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                        "[gpio] failed to open %s\n", path);
       return SWITCH_STATUS_TERM;
    }
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[gpio] connected chip %s to interface [%p]\n", chipname, globals.gpiochip);
 
    return SWITCH_STATUS_SUCCESS;
 }
 
-// XXX: Errors in here should be fatal if at startup (before globals.active == true)
+//////////////////////
+// helper requests   //
+//////////////////////
+
+static struct gpiod_line_request *
+gpio_request_output(unsigned int offset,
+                    const char *consumer,
+                    int value) {
+   struct gpiod_line_settings *st;
+   struct gpiod_line_config *cfg;
+   struct gpiod_request_config *rcfg;
+   struct gpiod_line_request *req;
+   unsigned int offs[1] = { offset };
+
+   st = gpiod_line_settings_new();
+   gpiod_line_settings_set_direction(st, GPIOD_LINE_DIRECTION_OUTPUT);
+
+   gpiod_line_settings_set_output_value(
+      st,
+      value ? GPIOD_LINE_VALUE_ACTIVE
+            : GPIOD_LINE_VALUE_INACTIVE);
+
+   cfg = gpiod_line_config_new();
+   gpiod_line_config_add_line_settings(cfg, offs, 1, st);
+
+   rcfg = gpiod_request_config_new();
+   gpiod_request_config_set_consumer(rcfg, consumer);
+
+   req = gpiod_chip_request_lines(gpiochip, rcfg, cfg);
+
+   gpiod_request_config_free(rcfg);
+   gpiod_line_config_free(cfg);
+   gpiod_line_settings_free(st);
+
+   return req;
+}
+
+static struct gpiod_line_request *
+gpio_request_input(unsigned int offset,
+                   const char *consumer) {
+   struct gpiod_line_settings *st;
+   struct gpiod_line_config *cfg;
+   struct gpiod_request_config *rcfg;
+   struct gpiod_line_request *req;
+   unsigned int offs[1] = { offset };
+
+   st = gpiod_line_settings_new();
+   gpiod_line_settings_set_direction(st, GPIOD_LINE_DIRECTION_INPUT);
+
+   cfg = gpiod_line_config_new();
+   gpiod_line_config_add_line_settings(cfg, offs, 1, st);
+
+   rcfg = gpiod_request_config_new();
+   gpiod_request_config_set_consumer(rcfg, consumer);
+
+   req = gpiod_chip_request_lines(gpiochip, rcfg, cfg);
+
+   gpiod_request_config_free(rcfg);
+   gpiod_line_config_free(cfg);
+   gpiod_line_settings_free(st);
+
+   return req;
+}
+
+//////////////////////
+// radio init        //
+//////////////////////
 int radio_gpio_init(const int radio) {
    Radio_t *r;
 
    if (radio < 0 || radio >= globals.max_radios) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init: (%d) is not a valid radio id\n", radio);
-      err_invalid_radio(radio);
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                        "[gpio] invalid radio %d\n", radio);
       return SWITCH_STATUS_FALSE;
    }
 
-   // Shorthand
    r = &Radios(radio);
 
-   if (globals.gpiochip == NULL) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d) failed - gpiochip unset! you MUST call radio_gpiochip_init first!\n", radio);
+   if (!gpiochip) {
+      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                        "[gpio] chip not initialized\n");
       return SWITCH_STATUS_FALSE;
    }
 
-   // Attach the power GPIO line to our interface
-   if (r->pin_power > 0) {
-      if ((r->gpio_power = gpiod_chip_get_line(globals.gpiochip, r->pin_power)) == NULL) {
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d)/power failed!\n", radio);
-         return SWITCH_STATUS_FALSE;
-      } else {
-         gpiod_line_request_output(r->gpio_power, "power", 0);
-      }
-   }
+   //////////////////////
+   // POWER GPIO       //
+   //////////////////////
+   if (r->pin_power >= 0) {
+      r->gpio_power =
+         gpio_request_output(r->pin_power,
+                             "hamradio-power",
+                             r->pin_power_invert ? 1 : 0);
 
-   // Attach the ptt GPIO line to our interface
-   if (r->pin_ptt > 0) {
-      if ((r->gpio_ptt = gpiod_chip_get_line(globals.gpiochip, r->pin_ptt)) == NULL) {
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d)/ptt failed!\n", radio);
+      if (!r->gpio_power) {
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                           "[gpio] radio %d power request failed\n", radio);
          return SWITCH_STATUS_FALSE;
       }
-      gpiod_line_request_output(r->gpio_ptt, "ptt", 0);
    }
 
-   if (r->pin_squelch > 0) {
-      if (r->RX_mode == SQUELCH_GPIO) {
-         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "radio%d initializing GPIO squelch input\n", radio);
+   //////////////////////
+   // PTT GPIO         //
+   //////////////////////
+   if (r->pin_ptt >= 0) {
+      r->gpio_ptt =
+         gpio_request_output(r->pin_ptt,
+                             "hamradio-ptt",
+                             r->pin_ptt_invert ? 1 : 0);
 
-         // connect to the GPIO line
-         if ((r->gpio_squelch = gpiod_chip_get_line(globals.gpiochip, r->pin_squelch)) == NULL) {
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio_gpio_init(%d)/squelch failed!\n", radio);
-            return SWITCH_STATUS_FALSE;
-         }
-         // Set pin mode to INPUT
-         gpiod_line_request_input(r->gpio_squelch, "squelch");
+      if (!r->gpio_ptt) {
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                           "[gpio] radio %d ptt request failed\n", radio);
+         return SWITCH_STATUS_FALSE;
       }
    }
-   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "[gpio] Attached GPIOs for radio%d: power=%p ptt=%p squelch=%p\n", radio,
-                     r->gpio_power, r->gpio_ptt, r->gpio_squelch);
+
+   //////////////////////
+   // SQUELCH INPUT    //
+   //////////////////////
+   if (r->pin_squelch >= 0 && r->RX_mode == SQUELCH_GPIO) {
+      r->gpio_squelch =
+         gpio_request_input(r->pin_squelch,
+                            "hamradio-squelch");
+
+      if (!r->gpio_squelch) {
+         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                           "[gpio] radio %d squelch request failed\n", radio);
+         return SWITCH_STATUS_FALSE;
+      }
+   }
+
+   switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE,
+                     "[gpio] radio %d init done (pwr=%p ptt=%p sq=%p)\n",
+                     radio,
+                     r->gpio_power,
+                     r->gpio_ptt,
+                     r->gpio_squelch);
 
    return SWITCH_STATUS_SUCCESS;
 }
+
+//////////////////////
+// cleanup           //
+//////////////////////
 
 switch_status_t radio_gpio_fini(void) {
-   // if gpiochip is mapped, we need to unmap all the lines then the chip
-   if (globals.gpiochip != NULL) {
-      // Unmap the lines for each radio
-      for (int i = 0; i < globals.max_radios; i++) {
-         if (globals.Radios[i].gpio_power != NULL) {
-            // Unmap the line
-            gpiod_line_release(globals.Radios[i].gpio_power);
-            globals.Radios[i].gpio_power = NULL;
-         }
+   if (!gpiochip) {
+      return SWITCH_STATUS_SUCCESS;
+   }
 
-         if (globals.Radios[i].gpio_ptt != NULL) {
-            // Unmap the line
-            gpiod_line_release(globals.Radios[i].gpio_ptt);
-            globals.Radios[i].gpio_ptt = NULL;
-         }
+   for (int i = 0; i < globals.max_radios; i++) {
+      Radio_t *r = &Radios(i);
 
-         if (globals.Radios[i].gpio_squelch != NULL) {
-            // Unmap the line
-            gpiod_line_release(globals.Radios[i].gpio_squelch);
-            globals.Radios[i].gpio_squelch = NULL;
-         }
+      if (r->gpio_power) {
+         gpiod_line_request_release(r->gpio_power);
+         r->gpio_power = NULL;
       }
 
-      // Unmap the GPIO chip
-      gpiod_chip_close(globals.gpiochip);
-      globals.gpiochip = NULL;
+      if (r->gpio_ptt) {
+         gpiod_line_request_release(r->gpio_ptt);
+         r->gpio_ptt = NULL;
+      }
+
+      if (r->gpio_squelch) {
+         gpiod_line_request_release(r->gpio_squelch);
+         r->gpio_squelch = NULL;
+      }
    }
+
+   gpiod_chip_close(gpiochip);
+   gpiochip = NULL;
+
    return SWITCH_STATUS_SUCCESS;
 }
+
+//////////////////////
+// control helpers   //
+//////////////////////
 
 switch_status_t radio_gpio_ptt_on(const int radio) {
    Radio_t *r;
 
    if (radio < 0 || radio >= globals.max_radios) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
-      err_invalid_radio(radio);
       return SWITCH_STATUS_FALSE;
    }
 
-   // Shorthand
    r = &Radios(radio);
 
-   if (r == NULL || r->gpio_power == NULL)
+   if (!r->gpio_ptt) {
       return SWITCH_STATUS_FALSE;
+   }
 
-   if (r->pin_ptt_invert)
-      gpiod_line_set_value(r->gpio_ptt, 0);
-   else
-      gpiod_line_set_value(r->gpio_ptt, 1);
+   gpiod_line_request_set_value(
+      r->gpio_ptt,
+      r->pin_ptt,
+      r->pin_ptt_invert ? GPIOD_LINE_VALUE_INACTIVE
+                        : GPIOD_LINE_VALUE_ACTIVE);
+
    return SWITCH_STATUS_SUCCESS;
 }
 
-switch_status_t radio_gpio_ptt_off(const int radio) {
+switch_status_t radio_gpio_ptt_off(const int radio)
+{
    Radio_t *r;
 
    if (radio < 0 || radio >= globals.max_radios) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
-      err_invalid_radio(radio);
       return SWITCH_STATUS_FALSE;
    }
 
-   // Shorthand
    r = &Radios(radio);
 
-   if (r == NULL || r->gpio_power == NULL)
+   if (!r->gpio_ptt) {
       return SWITCH_STATUS_FALSE;
+   }
 
-   if (r->pin_ptt_invert)
-      gpiod_line_set_value(r->gpio_ptt, 1);
-   else
-      gpiod_line_set_value(r->gpio_ptt, 0);
+   gpiod_line_request_set_value(
+      r->gpio_ptt,
+      r->pin_ptt,
+      r->pin_ptt_invert ? GPIOD_LINE_VALUE_ACTIVE
+                        : GPIOD_LINE_VALUE_INACTIVE);
 
    return SWITCH_STATUS_SUCCESS;
 }
 
-switch_status_t radio_gpio_power_on(const int radio) {
+switch_status_t radio_gpio_power_on(const int radio)
+{
    Radio_t *r;
 
    if (radio < 0 || radio >= globals.max_radios) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
-      err_invalid_radio(radio);
       return SWITCH_STATUS_FALSE;
    }
 
-   // Shorthand
    r = &Radios(radio);
 
-   if (r == NULL || r->gpio_power == NULL)
+   if (!r->gpio_power) {
       return SWITCH_STATUS_FALSE;
+   }
 
-   if (r->pin_power_invert)
-      gpiod_line_set_value(r->gpio_power, 0);
-   else
-      gpiod_line_set_value(r->gpio_power, 1);
+   gpiod_line_request_set_value(
+      r->gpio_power,
+      r->pin_power,
+      r->pin_power_invert ? GPIOD_LINE_VALUE_INACTIVE
+                          : GPIOD_LINE_VALUE_ACTIVE);
+
    return SWITCH_STATUS_SUCCESS;
 }
 
-switch_status_t radio_gpio_power_off(const int radio) {
+switch_status_t radio_gpio_power_off(const int radio)
+{
    Radio_t *r;
 
    if (radio < 0 || radio >= globals.max_radios) {
-      switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "%s: (%d) is not a valid radio id\n", __FUNCTION__, radio);
-      err_invalid_radio(radio);
       return SWITCH_STATUS_FALSE;
    }
 
-   // Shorthand
    r = &Radios(radio);
 
-   if (r == NULL || r->gpio_power == NULL)
+   if (!r->gpio_power) {
       return SWITCH_STATUS_FALSE;
+   }
 
-   if (r->pin_power_invert)
-      gpiod_line_set_value(r->gpio_power, 1);
-   else
-      gpiod_line_set_value(r->gpio_power, 0);
+   gpiod_line_request_set_value(
+      r->gpio_power,
+      r->pin_power,
+      r->pin_power_invert ? GPIOD_LINE_VALUE_ACTIVE
+                          : GPIOD_LINE_VALUE_INACTIVE);
+
    return SWITCH_STATUS_SUCCESS;
 }
 
-int radio_gpio_read_squelch(const int radio) {
-   Radio_t *r;
-   int val = 0;
+//////////////////////
+// squelch read     //
+//////////////////////
 
-   if (radio < 0 || radio > globals.max_radios)
+int radio_gpio_read_squelch(const int radio)
+{
+   Radio_t *r;
+
+   if (radio < 0 || radio >= globals.max_radios) {
       return -1;
+   }
 
    r = &Radios(radio);
 
-   if (r == NULL || r->gpio_squelch == NULL)
+   if (!r->gpio_squelch) {
       return -1;
+   }
 
-   val = gpiod_line_get_value(r->gpio_squelch);
-   return val;
+   enum gpiod_line_value v =
+      gpiod_line_request_get_value(
+         r->gpio_squelch,
+         r->pin_squelch);
+
+   if (v < 0) {
+      return -1;
+   }
+
+   if (r->squelch_invert) {
+      return v == GPIOD_LINE_VALUE_INACTIVE;
+   }
+
+   return v == GPIOD_LINE_VALUE_ACTIVE;
 }

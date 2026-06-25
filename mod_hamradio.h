@@ -48,7 +48,7 @@
 
 
 #define	MAX_GPIO	128		// maximum GPIO pin # (this is intentionally high)
-#define	HAMRADIO_CONF	"/etc/freeswitch/hamradio.conf" // configuration file
+#define	HAMRADIO_CONF	"hamradio.conf" // configuration file
 
 struct RadioEvent {
    switch_event_types_t event_type;

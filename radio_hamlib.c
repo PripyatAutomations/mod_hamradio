@@ -197,8 +197,8 @@ switch_status_t radio_hamlib_init_radio(const int radio) {
     r->rig_port.parm.serial.stop_bits = 1;
     r->rig_port.parm.serial.parity = RIG_PARITY_NONE;
     r->rig_port.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-    strncpy(r->rig_port.pathname, r->rig_path, PATH_MAX);
-    strncpy(r->rig->state.rigport.pathname, r->rig_path, PATH_MAX);
+    strncpy(r->rig_port.pathname, r->rig_path, HAMLIB_FILPATHLEN);
+    strncpy(r->rig->state.rigport.pathname, r->rig_path, HAMLIB_FILPATHLEN);
 
     if ((rc = rig_open(r->rig)) != RIG_OK) {
        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "radio%d connecting to hamlib returned %s\n", radio, rigerror(rc));

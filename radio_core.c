@@ -17,8 +17,9 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
    time_t last_tick;
 
    // Wait for the main process to be ready
-   while (!globals.alive)
+   while (!globals.alive) {
       sleep(1);
+   }
 
    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "hamradio interface control thread waking up!\n");
 
@@ -35,8 +36,9 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
          // Another second has passed, reduce penalty time on this radio
          if (r->penalty > 0) {
             // This should only happen once per second, make sure that's the case...
-            if (last_tick && (now - last_tick >= 1))
+            if (last_tick && (now - last_tick >= 1)) {
                r->penalty -= (now - last_tick);
+            }
 
             last_tick = now;
 
@@ -126,8 +128,9 @@ SWITCH_MODULE_RUNTIME_FUNCTION(mod_hamradio_runtime) {
       }
 
       // This allows reducing CPU load in the polling code, if needed
-      if (globals.poll_interval > 0)
+      if (globals.poll_interval > 0) {
          usleep(globals.poll_interval);
+      }
       switch_cond_next();
    }
    return SWITCH_STATUS_TERM;
