@@ -348,8 +348,15 @@ switch_status_t radio_load_configuration(switch_bool_t reload) {
 
    // load the dictionary configuration
    char conf_path[512];
-   const char *conf_dir = switch_core_get_variable("conf_dir");
-   snprintf(conf_path, sizeof(conf_path), "%s/%s", conf_dir, HAMRADIO_CONF);
+   
+   const char *conf = switch_core_get_variable("hamradio_conf");
+   if (!conf) {
+      const char *conf_dir = switch_core_get_variable("conf_dir");
+      snprintf(conf_path, sizeof(conf_path), "%s/%s", conf_dir, HAMRADIO_CONF);
+   } else {
+      snprintf(conf_path, sizeof(conf_path), "%s", conf);
+   }
+
    if (!(globals.cfg = dconf_load(conf_path))) {
       switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[mod_hamradio] %sloading configuration from hamradio.conf failed. Please examine the DEBUG level log output from mod_hamradio to see why!\n", (reload ? "re" : ""));
       return SWITCH_STATUS_FALSE;
