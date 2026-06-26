@@ -41,10 +41,6 @@
 
 // IDentification (CW + voice)
 #include "radio_id.h"
-#include "radio_tts.h"
-
-// Voice Activity Detection
-#include "radio_vad.h"
 
 
 #define	MAX_GPIO	128		// maximum GPIO pin # (this is intentionally high)

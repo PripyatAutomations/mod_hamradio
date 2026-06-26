@@ -356,8 +356,9 @@ void radio_print_status(switch_stream_handle_t *stream, const int radio) {
          if (radio >= globals.max_radios) {
             stream->write_function(stream, "invalid radio %d specified\n", radio);
             err_invalid_radio(radio);
-         } else
+         } else {
             stream->write_function(stream, "ERROR unknown\n");
+         }
          break;
       case RADIO_DISABLED:
          stream->write_function(stream, "DISABLED\n");

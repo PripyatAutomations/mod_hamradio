@@ -1,15 +1,19 @@
-MODNAME = mod_hamradio.so
+confdir := /opt/freeswitch/config/freeswitch
 
+MODNAME = mod_hamradio.so
+MODOBJS += dict.o
 MODOBJS += mod_hamradio.o
-MODOBJS += dict.o radio_hamlib.o
-MODOBJS += radio.o radio_gpio.o
-MODOBJS += radio_tones.o radio_tts.o
-MODOBJS += radio_conf.o radio_channel.o
-MODOBJS += radio_id.o radio_vad.o
-MODOBJS += radio_core.o radio_endpoint.o
-MODOBJS += radio_events.o radio_cfg.o
-MODOBJS += radio_audio.o radio_alsa.o
-MODOBJS += radio_http.o
+MODOBJS += radio.o
+MODOBJS += radio_cfg.o
+MODOBJS += radio_channel.o
+MODOBJS += radio_conf.o
+MODOBJS += radio_core.o
+MODOBJS += radio_endpoint.o
+MODOBJS += radio_events.o 
+MODOBJS += radio_gpio.o
+MODOBJS += radio_hamlib.o
+MODOBJS += radio_id.o
+MODOBJS += radio_tones.o
 
 MODCFLAGS = -Wall -Werror
 MODLDFLAGS = -lssl -lm -L/usr/local/lib -lgpiod -lhamlib -lbsd
@@ -46,19 +50,19 @@ install: $(MODNAME)
 conf-notice:
 	@echo "You have succesfully built mod_hamradio! Now install it using 'sudo make install' or place mod_hamradio.so in your freeswitch modules directory."
 	@echo ""
-	@echo "Don't forget to copy hamradio.conf to /etc/freeswitch and edit it, if you haven't already!"
+	@echo "Don't forget to copy hamradio.conf to \$${confdir} and edit it, if you haven't already!"
 	@echo ""
 	@echo "Thanks for trying mod_hamradio! Please report bugs or contribute improvements via https://github.com/pripyatautomations/mod_hamradio !"
 
 install-config: hostconf-load
 
 hostconf-save:
-	-diff -uNr conf/ /etc/freeswitch/ > config.save.$$(date +"%Y%m%d_%H%M%S").diff
-	sudo rsync -avx /etc/freeswitch/ conf/
+	-diff -uNr conf/ ${confdir}/ > config.save.$$(date +"%Y%m%d_%H%M%S").diff
+	sudo rsync -avx ${confdir}/ conf/
 
 hostconf-load:
-	-diff -uNr /etc/freeswitch/ conf/ > config.save.$$(date +"%Y%m%d_%H%M%S").diff
-	sudo rsync -avx conf/ /etc/freeswitch
+	-diff -uNr ${confdir}/ conf/ > config.save.$$(date +"%Y%m%d_%H%M%S").diff
+	sudo rsync -avx conf/ ${confdir}/
 
 distclean: clean
 	${RM} *.diff
